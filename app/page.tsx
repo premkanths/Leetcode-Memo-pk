@@ -30,13 +30,15 @@ const FEATURES = [
 ];
 
 export default function HomePage() {
-  const { user, loading, configured, signInWithGithub, signInWithGoogle } = useAuth();
+  const { user, loading, configured, authError, signInWithGithub, signInWithGoogle } = useAuth();
   const router = useRouter();
   const [signingInProvider, setSigningInProvider] = useState<"github" | "google" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && user) router.replace("/dashboard");
+    if (!loading && user) {
+      router.replace("/dashboard");
+    }
   }, [loading, user, router]);
 
   const handleGithubSignIn = async () => {
@@ -64,6 +66,7 @@ export default function HomePage() {
   };
 
   const isBusy = !configured || loading || signingInProvider !== null;
+  const activeError = error || authError;
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -135,10 +138,10 @@ export default function HomePage() {
               <p className="text-xs text-zinc-500">
                 Sign in to sync your solves and get daily coaching. You can set or change your LeetCode username anytime.
               </p>
-              {error && (
-                <p role="alert" className="text-sm text-rose-400">
-                  {error}
-                </p>
+              {activeError && (
+                <div role="alert" className="mt-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+                  {activeError}
+                </div>
               )}
             </div>
           </div>

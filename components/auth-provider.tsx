@@ -31,6 +31,7 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   configured: boolean;
+  authError: string | null;
   signInWithGithub: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -60,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const configured = isFirebaseConfigured();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(configured);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!configured) return;
@@ -68,9 +70,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Completes a redirect-based sign-in (used when the popup was blocked).
     getRedirectResult(auth)
       .then(async (result) => {
-        if (result) await ensureUserDocument(result.user, resolveHandleFromCredential(result));
+        if (result) {
+          try {
+            await ensureUserDocument(result.user, resolveHandleFromCredential(result));
+          } catch (e) {
+            console.warn("Failed to ensure user document after redirect sign-in:", e);
+          }
+        }
       })
-      .catch((error: unknown) => console.error("Redirect sign-in failed", error));
+      .catch((error: unknown) => {
+        console.error("Redirect sign-in failed", error);
+        setAuthError(error instanceof Error ? error.message : "Redirect sign-in failed");
+      });
 
     return onAuthStateChanged(auth, (current) => {
       setUser(current);
@@ -79,10 +90,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [configured]);
 
   const signInWithGithub = useCallback(async () => {
+    setAuthError(null);
     const auth = getFirebaseAuth();
     try {
       const result = await signInWithPopup(auth, createGithubProvider());
-      await ensureUserDocument(result.user, resolveHandleFromCredential(result));
+      try {
+        await ensureUserDocument(result.user, resolveHandleFromCredential(result));
+      } catch (e) {
+        console.warn("Failed to ensure user document:", e);
+      }
     } catch (error) {
       if (hasErrorCode(error, "auth/popup-blocked")) {
         await signInWithRedirect(auth, createGithubProvider());
@@ -96,10 +112,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
+    setAuthError(null);
     const auth = getFirebaseAuth();
     try {
       const result = await signInWithPopup(auth, createGoogleProvider());
-      await ensureUserDocument(result.user, null);
+      try {
+        await ensureUserDocument(result.user, null);
+      } catch (e) {
+        console.warn("Failed to ensure user document:", e);
+      }
     } catch (error) {
       if (hasErrorCode(error, "auth/popup-blocked")) {
         await signInWithRedirect(auth, createGoogleProvider());
@@ -117,8 +138,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, loading, configured, signInWithGithub, signInWithGoogle, signOut }),
-    [user, loading, configured, signInWithGithub, signInWithGoogle, signOut],
+    () => ({ user, loading, configured, authError, signInWithGithub, signInWithGoogle, signOut }),
+    [user, loading, configured, authError, signInWithGithub, signInWithGoogle, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
