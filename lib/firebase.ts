@@ -7,17 +7,10 @@ import { getFirestore, type Firestore } from "firebase/firestore";
  * the project; access is enforced by Firestore rules and Auth), so they use the
  * NEXT_PUBLIC_ prefix and are read inline so Next.js can inline them at build time.
  */
-function getAuthDomain(): string | undefined {
-  if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
-    return window.location.host;
-  }
-  return process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN;
-}
-
 export function getFirebaseConfig(): FirebaseOptions {
   return {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: getAuthDomain(),
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,

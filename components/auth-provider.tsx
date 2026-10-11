@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       if (hasErrorCode(error, "auth/popup-blocked")) {
-        await signInWithRedirect(auth, createGithubProvider());
+        setAuthError("Pop-up was blocked by your browser. Please allow pop-ups for this site in your address bar to sign in.");
         return;
       }
       if (hasErrorCode(error, "auth/popup-closed-by-user") || hasErrorCode(error, "auth/cancelled-popup-request")) {
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       if (hasErrorCode(error, "auth/popup-blocked")) {
-        await signInWithRedirect(auth, createGoogleProvider());
+        setAuthError("Pop-up was blocked by your browser. Please allow pop-ups for this site in your address bar to sign in.");
         return;
       }
       if (hasErrorCode(error, "auth/popup-closed-by-user") || hasErrorCode(error, "auth/cancelled-popup-request")) {
