@@ -21,6 +21,7 @@ import {
 } from "firebase/auth";
 import {
   createGithubProvider,
+  createGoogleProvider,
   getFirebaseAuth,
   isFirebaseConfigured,
 } from "@/lib/firebase";
@@ -31,6 +32,7 @@ interface AuthContextValue {
   loading: boolean;
   configured: boolean;
   signInWithGithub: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -93,13 +95,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const signInWithGoogle = useCallback(async () => {
+    const auth = getFirebaseAuth();
+    try {
+      const result = await signInWithPopup(auth, createGoogleProvider());
+      await ensureUserDocument(result.user, null);
+    } catch (error) {
+      if (hasErrorCode(error, "auth/popup-blocked")) {
+        await signInWithRedirect(auth, createGoogleProvider());
+        return;
+      }
+      if (hasErrorCode(error, "auth/popup-closed-by-user") || hasErrorCode(error, "auth/cancelled-popup-request")) {
+        return;
+      }
+      throw error;
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     await firebaseSignOut(getFirebaseAuth());
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, loading, configured, signInWithGithub, signOut }),
-    [user, loading, configured, signInWithGithub, signOut],
+    () => ({ user, loading, configured, signInWithGithub, signInWithGoogle, signOut }),
+    [user, loading, configured, signInWithGithub, signInWithGoogle, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

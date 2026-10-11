@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { BookMarked, Brain, CalendarClock, Layers, Sparkles, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { GithubMark } from "@/components/github-mark";
+import { GoogleMark } from "@/components/google-mark";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -29,26 +30,40 @@ const FEATURES = [
 ];
 
 export default function HomePage() {
-  const { user, loading, configured, signInWithGithub } = useAuth();
+  const { user, loading, configured, signInWithGithub, signInWithGoogle } = useAuth();
   const router = useRouter();
-  const [signingIn, setSigningIn] = useState(false);
+  const [signingInProvider, setSigningInProvider] = useState<"github" | "google" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && user) router.replace("/dashboard");
   }, [loading, user, router]);
 
-  const handleSignIn = async () => {
+  const handleGithubSignIn = async () => {
     setError(null);
-    setSigningIn(true);
+    setSigningInProvider("github");
     try {
       await signInWithGithub();
     } catch (err) {
       setError(getErrorMessage(err, "GitHub sign-in failed. Please try again."));
     } finally {
-      setSigningIn(false);
+      setSigningInProvider(null);
     }
   };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setSigningInProvider("google");
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      setError(getErrorMessage(err, "Google sign-in failed. Please try again."));
+    } finally {
+      setSigningInProvider(null);
+    }
+  };
+
+  const isBusy = !configured || loading || signingInProvider !== null;
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -61,9 +76,14 @@ export default function HomePage() {
           </span>
           <span className="font-semibold text-zinc-100">LeetCode Memory Hub</span>
         </div>
-        <Button variant="outline" size="sm" onClick={handleSignIn} disabled={!configured || signingIn || loading}>
-          <GithubMark /> Sign in
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleGoogleSignIn} disabled={isBusy} className="gap-2">
+            <GoogleMark /> Google
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleGithubSignIn} disabled={isBusy} className="gap-2">
+            <GithubMark /> GitHub
+          </Button>
+        </div>
       </nav>
 
       <main className="mx-auto max-w-6xl px-6 pb-24 pt-12 sm:pt-20">
@@ -102,12 +122,18 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-col items-start gap-3">
-              <Button size="lg" onClick={handleSignIn} disabled={!configured || signingIn || loading}>
-                <GithubMark className="size-5" />
-                {signingIn ? "Opening GitHub…" : "Continue with GitHub"}
-              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button size="lg" onClick={handleGoogleSignIn} disabled={isBusy} className="gap-2.5 bg-white font-medium text-zinc-900 shadow-md hover:bg-zinc-100">
+                  <GoogleMark className="size-5" />
+                  {signingInProvider === "google" ? "Opening Google…" : "Continue with Google"}
+                </Button>
+                <Button size="lg" onClick={handleGithubSignIn} disabled={isBusy} className="gap-2.5 bg-zinc-800 text-white hover:bg-zinc-700">
+                  <GithubMark className="size-5" />
+                  {signingInProvider === "github" ? "Opening GitHub…" : "Continue with GitHub"}
+                </Button>
+              </div>
               <p className="text-xs text-zinc-500">
-                We use your GitHub username to find your LeetCode profile. Change it any time if they differ.
+                Sign in to sync your solves and get daily coaching. You can set or change your LeetCode username anytime.
               </p>
               {error && (
                 <p role="alert" className="text-sm text-rose-400">

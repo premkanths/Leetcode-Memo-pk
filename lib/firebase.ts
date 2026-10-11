@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp, type FirebaseApp, type FirebaseOptions } from "firebase/app";
-import { getAuth, GithubAuthProvider, type Auth } from "firebase/auth";
+import { getAuth, GithubAuthProvider, GoogleAuthProvider, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 
 /**
@@ -55,3 +55,11 @@ export function createGithubProvider(): GithubAuthProvider {
   provider.addScope("read:user");
   return provider;
 }
+
+/** Google OAuth provider. */
+export function createGoogleProvider(): GoogleAuthProvider {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  return provider;
+}
+
