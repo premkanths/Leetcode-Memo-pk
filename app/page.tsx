@@ -37,15 +37,16 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/dashboard");
+      window.location.href = "/dashboard";
     }
-  }, [loading, user, router]);
+  }, [loading, user]);
 
   const handleGithubSignIn = async () => {
     setError(null);
     setSigningInProvider("github");
     try {
       await signInWithGithub();
+      window.location.href = "/dashboard";
     } catch (err) {
       setError(getErrorMessage(err, "GitHub sign-in failed. Please try again."));
     } finally {
@@ -58,6 +59,7 @@ export default function HomePage() {
     setSigningInProvider("google");
     try {
       await signInWithGoogle();
+      window.location.href = "/dashboard";
     } catch (err) {
       setError(getErrorMessage(err, "Google sign-in failed. Please try again."));
     } finally {

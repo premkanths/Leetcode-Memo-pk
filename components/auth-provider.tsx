@@ -76,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } catch (e) {
             console.warn("Failed to ensure user document after redirect sign-in:", e);
           }
+          window.location.href = "/dashboard";
         }
       })
       .catch((error: unknown) => {
