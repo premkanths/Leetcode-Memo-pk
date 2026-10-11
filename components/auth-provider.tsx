@@ -95,10 +95,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const auth = getFirebaseAuth();
     try {
       const result = await signInWithPopup(auth, createGithubProvider());
-      try {
-        await ensureUserDocument(result.user, resolveHandleFromCredential(result));
-      } catch (e) {
-        console.warn("Failed to ensure user document:", e);
+      if (result.user) {
+        try {
+          await ensureUserDocument(result.user, resolveHandleFromCredential(result));
+        } catch (e) {
+          console.warn("Failed to ensure user document:", e);
+        }
+        window.location.href = "/dashboard";
       }
     } catch (error) {
       if (hasErrorCode(error, "auth/popup-blocked")) {
@@ -117,10 +120,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const auth = getFirebaseAuth();
     try {
       const result = await signInWithPopup(auth, createGoogleProvider());
-      try {
-        await ensureUserDocument(result.user, null);
-      } catch (e) {
-        console.warn("Failed to ensure user document:", e);
+      if (result.user) {
+        try {
+          await ensureUserDocument(result.user, null);
+        } catch (e) {
+          console.warn("Failed to ensure user document:", e);
+        }
+        window.location.href = "/dashboard";
       }
     } catch (error) {
       if (hasErrorCode(error, "auth/popup-blocked")) {

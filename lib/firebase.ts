@@ -7,20 +7,30 @@ import { getFirestore, type Firestore } from "firebase/firestore";
  * the project; access is enforced by Firestore rules and Auth), so they use the
  * NEXT_PUBLIC_ prefix and are read inline so Next.js can inline them at build time.
  */
-const firebaseConfig: FirebaseOptions = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+function getAuthDomain(): string | undefined {
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
+    return window.location.host;
+  }
+  return process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN;
+}
+
+export function getFirebaseConfig(): FirebaseOptions {
+  return {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: getAuthDomain(),
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  };
+}
 
 const REQUIRED_KEYS = ["apiKey", "authDomain", "projectId", "appId"] as const;
 
 /** True when the minimum set of Firebase env vars is present. */
 export function isFirebaseConfigured(): boolean {
-  return REQUIRED_KEYS.every((key) => Boolean(firebaseConfig[key]));
+  const config = getFirebaseConfig();
+  return REQUIRED_KEYS.every((key) => Boolean(config[key]));
 }
 
 let cachedApp: FirebaseApp | undefined;
@@ -36,7 +46,7 @@ export function getFirebaseApp(): FirebaseApp {
     );
   }
   if (!cachedApp) {
-    cachedApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    cachedApp = getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig());
   }
   return cachedApp;
 }
