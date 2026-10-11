@@ -1,0 +1,57 @@
+rules_version = '2';
+
+// Firestore security rules for LeetCode Memory Hub.
+// Deploy with: firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isValidMemoryStatus(status) {
+      return status in ['Mastered', 'Needs Review', 'Confused'];
+    }
+
+    function isValidDifficulty(difficulty) {
+      return difficulty in ['Easy', 'Medium', 'Hard'];
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && (!('totalSolved' in request.resource.data) || request.resource.data.totalSolved is int)
+        && (!('githubUsername' in request.resource.data) || request.resource.data.githubUsername is string)
+        && (!('leetcodeUsername' in request.resource.data) || request.resource.data.leetcodeUsername.size() <= 40);
+      allow delete: if false;
+
+      match /solvedProblems/{problemSlug} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.title is string
+          && request.resource.data.title.size() <= 300
+          && isValidDifficulty(request.resource.data.difficulty)
+          && isValidMemoryStatus(request.resource.data.memoryStatus)
+          && request.resource.data.notes is string
+          && request.resource.data.notes.size() <= 10000
+          && request.resource.data.topics is list
+          && request.resource.data.topics.size() <= 20;
+        allow delete: if false;
+      }
+
+      match /dailyRecommendations/{dateKey} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.items is list
+          && request.resource.data.items.size() <= 10;
+        allow delete: if false;
+      }
+    }
+
+    // Everything else is denied by default.
+  }
+}
