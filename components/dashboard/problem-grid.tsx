@@ -25,7 +25,7 @@ function GridSkeleton() {
   return (
     <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="h-56 animate-pulse rounded-2xl border border-white/[0.06] bg-zinc-900/60" />
+        <div key={index} className="h-56 animate-pulse rounded-2xl border border-border bg-card shadow-xs" />
       ))}
     </div>
   );
@@ -34,13 +34,13 @@ function GridSkeleton() {
 function EmptyState({ hasAnyProblems, onClearFilters }: { hasAnyProblems: boolean; onClearFilters: () => void }) {
   if (!hasAnyProblems) {
     return (
-      <div className="flex flex-col items-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 px-6 py-16 text-center">
-        <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-violet-500/10">
-          <Sparkles className="size-6 text-violet-300" />
+      <div className="flex flex-col items-center rounded-2xl border border-dashed border-border bg-card/40 px-6 py-16 text-center shadow-xs">
+        <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20">
+          <Sparkles className="size-6" />
         </span>
-        <h3 className="text-lg font-semibold text-zinc-100">Your hub is empty</h3>
-        <p className="mt-1 max-w-sm text-sm text-zinc-500">
-          Hit <span className="text-zinc-300">Sync LeetCode</span> to import your recent accepted submissions, or add
+        <h3 className="text-lg font-semibold text-foreground">Your notebook is empty</h3>
+        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+          Hit <span className="text-foreground font-semibold">Sync LeetCode</span> to import your recent accepted submissions, or add
           a problem by URL.
         </p>
       </div>
@@ -48,12 +48,12 @@ function EmptyState({ hasAnyProblems, onClearFilters }: { hasAnyProblems: boolea
   }
 
   return (
-    <div className="flex flex-col items-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 px-6 py-16 text-center">
-      <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-zinc-800/60">
-        <Search className="size-6 text-zinc-400" />
+    <div className="flex flex-col items-center rounded-2xl border border-dashed border-border bg-card/40 px-6 py-16 text-center shadow-xs">
+      <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground border border-border">
+        <Search className="size-6" />
       </span>
-      <h3 className="text-lg font-semibold text-zinc-100">No problems match</h3>
-      <p className="mt-1 text-sm text-zinc-500">Try a different search term or clear your filters.</p>
+      <h3 className="text-lg font-semibold text-foreground">No problems match</h3>
+      <p className="mt-1 text-sm text-muted-foreground">Try a different search term or clear your filters.</p>
       <Button variant="outline" size="sm" className="mt-5" onClick={onClearFilters}>
         Clear filters
       </Button>
@@ -121,24 +121,24 @@ export function ProblemGrid({
                 aria-expanded={!isCollapsed}
                 className="group flex cursor-pointer items-center gap-2.5 text-left"
               >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-violet-500/10 text-violet-300 ring-1 ring-violet-500/20">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
                   <Folder className="size-4" />
                 </span>
                 <span>
-                  <span className="block text-sm font-semibold text-zinc-100 group-hover:text-white">{folder.topic}</span>
-                  <span className="block text-xs text-zinc-500">
+                  <span className="block text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{folder.topic}</span>
+                  <span className="block text-xs text-muted-foreground">
                     {folder.problems.length} problem{folder.problems.length === 1 ? "" : "s"}
                   </span>
                 </span>
                 <ChevronDown
-                  className={cn("size-4 text-zinc-500 transition-transform", isCollapsed && "-rotate-90")}
+                  className={cn("size-4 text-muted-foreground transition-transform", isCollapsed && "-rotate-90")}
                 />
               </button>
 
-              <div className="flex items-center gap-2 text-xs text-zinc-500">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="hidden sm:inline">{masteredPercent}% mastered</span>
-                <div className="h-1.5 w-24 overflow-hidden rounded-full bg-zinc-800" aria-hidden="true">
-                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${masteredPercent}%` }} />
+                <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                  <div className="h-full rounded-full bg-status-mastered-text" style={{ width: `${masteredPercent}%` }} />
                 </div>
               </div>
             </div>

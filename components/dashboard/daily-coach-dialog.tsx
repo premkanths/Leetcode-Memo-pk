@@ -74,7 +74,7 @@ export function DailyCoachDialog({
         {/* Full-screen top header */}
         <div className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/80 px-6 py-4 backdrop-blur-xl sm:px-10">
           <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 text-white shadow-lg shadow-violet-500/25">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
               <Sparkles className="size-5" />
             </span>
             <div>
@@ -119,7 +119,7 @@ export function DailyCoachDialog({
             {loading ? (
               <div className="space-y-4 py-8">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Sparkles className="size-4 animate-pulse text-violet-400" />
+                  <Sparkles className="size-4 animate-pulse text-primary" />
                   <span>Analysing your revision memory patterns and weak spots with Gemini…</span>
                 </div>
                 <Skeleton className="h-32 rounded-2xl bg-card" />
@@ -138,12 +138,12 @@ export function DailyCoachDialog({
               <>
                 {/* Coach Insight Summary Banner */}
                 {recommendations.summary && (
-                  <div className="rounded-2xl border border-violet-500/30 bg-gradient-to-r from-violet-500/15 via-indigo-500/10 to-violet-500/15 p-6 shadow-sm">
-                    <div className="flex items-center gap-2 text-violet-400">
+                  <div className="rounded-2xl border border-border bg-muted/40 p-5">
+                    <div className="flex items-center gap-2 text-primary">
                       <Sparkles className="size-4" />
-                      <span className="font-bold text-sm uppercase tracking-wider">Coach Diagnostic Insight</span>
+                      <span className="font-semibold text-xs uppercase tracking-wider">Coach Diagnostic</span>
                     </div>
-                    <p className="mt-2 text-sm leading-relaxed text-foreground sm:text-base">
+                    <p className="mt-2 text-sm leading-relaxed text-foreground">
                       {recommendations.summary}
                     </p>
                   </div>
@@ -153,64 +153,62 @@ export function DailyCoachDialog({
                 <div>
                   <div className="mb-4 flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-foreground">
-                        Recommended Problems & Concepts ({recommendations.items.length})
+                      <h3 className="text-base font-semibold text-foreground">
+                        Today for you ({recommendations.items.length})
                       </h3>
                       <p className="text-xs text-muted-foreground">
-                        Targeted for today ({dateLabel}) to strengthen topics marked Confused or Needs Review.
+                        Gentle practice recommendations focused on your recent revision topics.
                       </p>
                     </div>
-                    <span className="rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
-                      Direct LeetCode Links Ready
-                    </span>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-3">
                     {recommendations.items.map((item, idx) => (
                       <div
                         key={item.id}
-                        className="group flex flex-col justify-between rounded-2xl border border-border bg-card/60 p-6 shadow-sm transition-all hover:border-violet-500/50 hover:shadow-lg"
+                        className="flex flex-col justify-between rounded-2xl border border-border bg-card p-5 shadow-xs transition-colors hover:border-primary/40"
                       >
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="flex size-7 items-center justify-center rounded-lg bg-violet-500/15 text-xs font-bold text-violet-300">
-                              #{idx + 1}
+                            <span className="flex size-6 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
+                              {idx + 1}
                             </span>
                             <div className="flex items-center gap-1.5">
                               {item.difficulty && (
-                                <Badge variant={DIFFICULTY_VARIANT[item.difficulty]} className="text-xs">
+                                <Badge variant={item.difficulty.toLowerCase() as "easy" | "medium" | "hard"}>
                                   {item.difficulty}
                                 </Badge>
                               )}
-                              <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                                {item.type.toUpperCase()}
+                              <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                {item.type}
                               </span>
                             </div>
                           </div>
 
-                          <div className="space-y-1.5">
-                            <h4 className="text-base font-bold text-foreground group-hover:text-violet-400 transition-colors">
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-semibold text-foreground">
                               {item.title}
                             </h4>
-                            <span className="inline-block rounded-md bg-violet-500/10 px-2 py-0.5 text-xs font-medium text-violet-300">
-                              📁 {item.topic}
+                            <span className="inline-block rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                              {item.topic}
                             </span>
                           </div>
 
-                          <p className="text-xs leading-relaxed text-muted-foreground">
+                          <div className="rounded-lg bg-muted/30 p-2.5 text-xs text-muted-foreground leading-relaxed">
+                            <span className="font-medium text-foreground block mb-0.5">Why this:</span>
                             {item.reason}
-                          </p>
+                          </div>
                         </div>
 
-                        <div className="mt-6 border-t border-border pt-4">
+                        <div className="mt-5 border-t border-border pt-3.5">
                           <a
                             href={item.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md transition-all hover:bg-violet-500"
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-medium text-primary-foreground shadow-xs transition-opacity hover:opacity-90"
                           >
                             <span>Open on LeetCode</span>
-                            <ExternalLink className="size-3.5" />
+                            <ExternalLink className="size-3" />
                           </a>
                         </div>
                       </div>
@@ -239,7 +237,7 @@ export function DailyCoachDialog({
               </>
             ) : (
               <div className="py-16 text-center space-y-4">
-                <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-violet-500/10 text-violet-300">
+                <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20">
                   <BookOpen className="size-6" />
                 </span>
                 <div>
@@ -248,7 +246,7 @@ export function DailyCoachDialog({
                     Click below to have Gemini analyze your tracked problems and build your customized question list.
                   </p>
                 </div>
-                <Button onClick={onRegenerate} className="bg-violet-600 text-white hover:bg-violet-500">
+                <Button onClick={onRegenerate} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   <Sparkles className="size-4" />
                   <span>Generate Recommended Questions</span>
                 </Button>

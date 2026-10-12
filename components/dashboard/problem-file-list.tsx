@@ -66,13 +66,15 @@ export function ProblemFileList({
   onOpenWorkspace,
 }: ProblemFileListProps) {
   const [updatingSlug, setUpdatingSlug] = useState<string | null>(null);
+  const [statusMenuOpen, setStatusMenuOpen] = useState<string | null>(null);
 
-  const handleStatusClick = async (
+  const handleStatusSelect = async (
     e: React.MouseEvent,
     problem: SolvedProblem,
     nextStatus: MemoryStatus
   ) => {
     e.stopPropagation();
+    setStatusMenuOpen(null);
     if (problem.memoryStatus === nextStatus || updatingSlug) return;
     setUpdatingSlug(problem.titleSlug);
     try {
@@ -84,52 +86,59 @@ export function ProblemFileList({
     }
   };
 
+  const getStatusBadgeStyle = (status: MemoryStatus) => {
+    if (status === "Mastered") {
+      return "border-[var(--status-mastered-border)] bg-[var(--status-mastered-bg)] text-[var(--status-mastered-fg)]";
+    }
+    if (status === "Needs Review") {
+      return "border-[var(--status-review-border)] bg-[var(--status-review-bg)] text-[var(--status-review-fg)]";
+    }
+    return "border-[var(--status-confused-border)] bg-[var(--status-confused-bg)] text-[var(--status-confused-fg)]";
+  };
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-950/60 shadow-xl backdrop-blur-xl">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xs">
       {/* File Table Header */}
-      <div className="grid grid-cols-12 items-center border-b border-white/[0.07] bg-zinc-900/60 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-        <div className="col-span-5 flex items-center gap-2">
-          <span>Problem File</span>
+      <div className="grid grid-cols-12 items-center border-b border-border bg-muted/40 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="col-span-6 sm:col-span-5">
+          <span>Problem</span>
         </div>
-        <div className="col-span-2 hidden sm:block">
+        <div className="col-span-3 sm:col-span-2">
           <span>Difficulty</span>
         </div>
-        <div className="col-span-2 hidden md:block">
-          <span>Solution Code</span>
+        <div className="col-span-3 sm:col-span-3">
+          <span>Status</span>
         </div>
-        <div className="col-span-3 hidden lg:block">
-          <span>Memory State</span>
-        </div>
-        <div className="col-span-7 flex justify-end sm:col-span-5 md:col-span-3 lg:col-span-2">
+        <div className="hidden sm:col-span-2 sm:flex justify-end">
           <span>Action</span>
         </div>
       </div>
 
       {/* File Rows List */}
-      <div className="divide-y divide-white/[0.04]">
+      <div className="divide-y divide-border">
         {problems.map((problem) => {
           const diffConfig = DIFFICULTY_CONFIG[problem.difficulty];
           const hasCode = !!problem.code;
-          const hasNotes = !!problem.notes?.trim();
+          const isMenuOpen = statusMenuOpen === problem.titleSlug;
 
           return (
             <div
               key={problem.titleSlug}
               onClick={() => onOpenWorkspace?.(problem)}
-              className="group grid grid-cols-12 items-center gap-2 px-4 py-3 text-xs transition-all hover:bg-zinc-900/70 cursor-pointer"
+              className="group grid grid-cols-12 items-center gap-2 px-4 py-3 text-xs transition-colors hover:bg-muted/50 cursor-pointer"
             >
-              {/* File / Problem Name */}
-              <div className="col-span-5 flex min-w-0 items-center gap-3">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-zinc-900 ring-1 ring-white/[0.08] group-hover:border-violet-500/40">
+              {/* Problem Name & Topics */}
+              <div className="col-span-6 sm:col-span-5 flex min-w-0 items-center gap-3">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground group-hover:text-primary transition-colors">
                   {hasCode ? (
-                    <FileCode2 className={cn("size-3.5", diffConfig.iconClass)} />
+                    <FileCode2 className="size-3.5" />
                   ) : (
-                    <FileText className="size-3.5 text-zinc-500" />
+                    <FileText className="size-3.5" />
                   )}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="truncate font-semibold text-zinc-100 group-hover:text-violet-300 transition-colors">
+                    <span className="truncate font-medium text-foreground group-hover:text-primary transition-colors">
                       {problem.title}
                     </span>
                     <a
@@ -137,87 +146,81 @@ export function ProblemFileList({
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="rounded p-0.5 text-zinc-500 opacity-40 transition-opacity hover:text-zinc-200 group-hover:opacity-100"
+                      className="rounded p-0.5 text-muted-foreground opacity-40 transition-opacity hover:opacity-100"
                       title="Open on LeetCode"
                     >
                       <ExternalLink className="size-3" />
                     </a>
                   </div>
-                  {/* Subtitle with Topics */}
-                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[10px] text-zinc-500">
+                  {/* Topics subtitle */}
+                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
                     {problem.topics.slice(0, 3).map((topic) => (
-                      <span key={topic} className="rounded bg-zinc-900 px-1.5 py-0.2 text-zinc-400">
+                      <span key={topic} className="rounded bg-muted px-1.5 py-0.2">
                         {topic}
                       </span>
                     ))}
                     {problem.topics.length > 3 && (
-                      <span className="text-zinc-600">+{problem.topics.length - 3}</span>
+                      <span>+{problem.topics.length - 3}</span>
+                    )}
+                    {hasCode && (
+                      <span className="rounded bg-muted px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
+                        {problem.codeLanguage || "code"}
+                      </span>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Difficulty */}
-              <div className="col-span-2 hidden sm:flex items-center">
-                <span
-                  className={cn(
-                    "inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold",
-                    diffConfig.badgeClass
-                  )}
-                >
+              <div className="col-span-3 sm:col-span-2 flex items-center">
+                <Badge variant={problem.difficulty.toLowerCase() as "easy" | "medium" | "hard"}>
                   {problem.difficulty}
-                </span>
+                </Badge>
               </div>
 
-              {/* Code Status */}
-              <div className="col-span-2 hidden md:flex items-center gap-1.5">
-                {hasCode ? (
-                  <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 font-mono text-[11px] font-medium text-emerald-400 ring-1 ring-emerald-500/20">
-                    <Code2 className="size-3" />
-                    <span>{problem.codeLanguage || "Java"}</span>
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-zinc-600">No code</span>
-                )}
-                {hasNotes && (
-                  <span className="size-1.5 rounded-full bg-amber-400/80" title="Notes added" />
-                )}
-              </div>
-
-              {/* Memory Status Selector */}
+              {/* Status Single Soft Pill with small dropdown menu */}
               <div
-                className="col-span-3 hidden lg:flex items-center gap-1"
+                className="col-span-3 sm:col-span-3 relative flex items-center"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="inline-flex items-center rounded-lg bg-zinc-900/90 p-0.5 ring-1 ring-white/[0.06]">
-                  {MEMORY_STATUSES.map((status) => {
-                    const isSelected = problem.memoryStatus === status;
-                    let activeCls = "text-zinc-500 hover:text-zinc-300";
-                    if (isSelected) {
-                      if (status === "Mastered") activeCls = "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40";
-                      if (status === "Needs Review") activeCls = "bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40";
-                      if (status === "Confused") activeCls = "bg-rose-500/20 text-rose-300 ring-1 ring-rose-500/40";
-                    }
-                    return (
+                <button
+                  type="button"
+                  onClick={() => setStatusMenuOpen(isMenuOpen ? null : problem.titleSlug)}
+                  disabled={updatingSlug === problem.titleSlug}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-all hover:opacity-85",
+                    getStatusBadgeStyle(problem.memoryStatus)
+                  )}
+                >
+                  <span className="size-1.5 rounded-full bg-current" />
+                  <span>{problem.memoryStatus}</span>
+                </button>
+
+                {/* Dropdown status menu */}
+                {isMenuOpen && (
+                  <div className="absolute left-0 top-full z-30 mt-1 w-36 rounded-xl border border-border bg-card p-1 shadow-lg">
+                    {MEMORY_STATUSES.map((status) => (
                       <button
                         key={status}
                         type="button"
-                        onClick={(e) => void handleStatusClick(e, problem, status)}
-                        disabled={updatingSlug === problem.titleSlug}
+                        onClick={(e) => void handleStatusSelect(e, problem, status)}
                         className={cn(
-                          "cursor-pointer rounded px-2 py-0.5 text-[10px] font-medium transition-all",
-                          activeCls
+                          "flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition-colors",
+                          problem.memoryStatus === status
+                            ? "bg-muted font-medium text-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                         )}
                       >
-                        {status}
+                        <span>{status}</span>
+                        {problem.memoryStatus === status && <span className="size-1.5 rounded-full bg-primary" />}
                       </button>
-                    );
-                  })}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Action Buttons */}
-              <div className="col-span-7 flex items-center justify-end gap-1.5 sm:col-span-5 md:col-span-3 lg:col-span-2">
+              {/* Action: AI View button (visible on row hover or inside workspace) */}
+              <div className="hidden sm:col-span-2 sm:flex items-center justify-end">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -225,12 +228,10 @@ export function ProblemFileList({
                     e.stopPropagation();
                     onOpenWorkspace?.(problem);
                   }}
-                  className="h-7 cursor-pointer px-2 text-xs text-zinc-400 hover:bg-violet-500/15 hover:text-violet-200"
-                  title="Open full workspace & AI Coach"
+                  className="h-7 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
                 >
-                  <Sparkles className="size-3 text-violet-400" />
+                  <Sparkles className="size-3 text-primary" />
                   <span>AI View</span>
-                  <Maximize2 className="size-3 opacity-50" />
                 </Button>
               </div>
             </div>

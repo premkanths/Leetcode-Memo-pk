@@ -49,13 +49,15 @@ function NoticeBanner({ notice, onDismiss }: { notice: Notice; onDismiss: () => 
       role={isError ? "alert" : "status"}
       className={cn(
         "mb-6 flex items-start gap-3 rounded-xl border px-4 py-3 text-sm",
-        isError ? "border-rose-500/30 bg-rose-500/10 text-rose-200" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
+        isError
+          ? "border-status-confused-border bg-status-confused-bg text-status-confused-text"
+          : "border-status-mastered-border bg-status-mastered-bg text-status-mastered-text",
       )}
     >
       {isError ? <CircleAlert className="mt-0.5 size-4 shrink-0" /> : <CircleCheck className="mt-0.5 size-4 shrink-0" />}
       <p className="flex-1 leading-relaxed">{notice.text}</p>
       {notice.action && (
-        <Button variant="link" size="sm" className="h-auto p-0 text-rose-200" onClick={notice.action.onClick}>
+        <Button variant="link" size="sm" className="h-auto p-0 text-inherit underline underline-offset-4" onClick={notice.action.onClick}>
           {notice.action.label}
         </Button>
       )}
@@ -187,9 +189,7 @@ export function DashboardView({ user }: { user: User }) {
     : "Not synced yet";
 
   return (
-    <div className="relative min-h-screen">
-      <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.14),transparent_60%)]" />
-
+    <div className="relative min-h-screen bg-background">
       <DashboardHeader
         user={user}
         displayName={profile?.displayName}
@@ -207,7 +207,7 @@ export function DashboardView({ user }: { user: User }) {
         {notice && <NoticeBanner notice={notice} onDismiss={() => setNotice(null)} />}
 
         {liveError && (
-          <div role="alert" className="mb-6 flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <div role="alert" className="mb-6 flex items-center gap-3 rounded-xl border border-status-review-border bg-status-review-bg px-4 py-3 text-sm text-status-review-text">
             <AlertTriangle className="size-4 shrink-0" />
             <p>Live data is unavailable: {liveError}</p>
           </div>
@@ -238,10 +238,10 @@ export function DashboardView({ user }: { user: User }) {
             <section aria-label="Solved problems" className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-semibold tracking-tight text-zinc-50">
+                  <h2 className="text-xl font-semibold tracking-tight text-foreground">
                     {filters.topic === "all" ? "All Problems" : `Folder: ${filters.topic}`}
                   </h2>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-muted-foreground">
                     Showing {visibleProblems.length} problem{visibleProblems.length === 1 ? "" : "s"}
                     {filters.status !== "all" && ` · Filtered by ${filters.status}`}
                   </p>

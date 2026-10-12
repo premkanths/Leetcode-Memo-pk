@@ -134,22 +134,16 @@ export default function HomePage() {
 
   return (
     <div className="relative min-h-screen">
-      {/* Background radial gradient */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.2),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(99,102,241,0.12),transparent_50%)]"
-      />
-
       {/* Navigation Bar */}
-      <nav className="sticky top-0 z-40 border-b border-white/[0.08] bg-background/80 backdrop-blur-xl transition-colors">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <nav className="sticky top-0 z-40 border-b border-border bg-card/85 backdrop-blur-md transition-colors">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 shadow-lg shadow-violet-500/25">
-              <BookMarked className="size-5 text-white" />
+            <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <BookMarked className="size-5" />
             </span>
             <div>
-              <span className="text-base font-bold tracking-tight text-foreground">LeetCode Memory Hub</span>
-              <p className="hidden text-[10px] text-muted-foreground sm:block">Concept Coach & Retention System</p>
+              <span className="text-base font-semibold tracking-tight text-foreground">LeetCode Memory Hub</span>
+              <p className="hidden text-xs text-muted-foreground sm:block">A calm notebook for algorithmic retention</p>
             </div>
           </div>
 
@@ -159,11 +153,11 @@ export default function HomePage() {
               variant="outline"
               size="icon"
               onClick={toggleTheme}
-              className="size-9 rounded-xl border-border bg-card/60 text-foreground transition-transform hover:scale-105"
+              className="size-8.5 rounded-xl border-border bg-card text-foreground"
               title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
               aria-label="Toggle light and dark theme"
             >
-              {theme === "dark" ? <Sun className="size-4 text-amber-300" /> : <Moon className="size-4 text-violet-600" />}
+              {theme === "dark" ? <Sun className="size-4 text-amber-300" /> : <Moon className="size-4 text-zinc-600" />}
             </Button>
 
             <Button
@@ -171,7 +165,7 @@ export default function HomePage() {
               size="sm"
               onClick={handleGoogleSignIn}
               disabled={isBusy}
-              className="gap-2 border-border bg-card/60 text-foreground hover:bg-muted"
+              className="gap-2 border-border bg-card text-foreground hover:bg-muted"
             >
               <GoogleMark />
               <span className="hidden sm:inline">Google</span>
@@ -180,7 +174,7 @@ export default function HomePage() {
               size="sm"
               onClick={handleGithubSignIn}
               disabled={isBusy}
-              className="gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-500/20 hover:from-violet-500 hover:to-indigo-500"
+              className="gap-2 bg-primary text-primary-foreground hover:opacity-90"
             >
               <GithubMark />
               <span>Get Started</span>
@@ -189,62 +183,39 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <main className="mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pt-16">
+      {/* Main Content */}
+      <main className="mx-auto max-w-6xl px-6 pb-24 pt-12 sm:pt-16">
         {!configured && (
           <Card className="mb-10 border-amber-500/30 bg-amber-500/10 p-5">
             <div className="flex items-start gap-3">
-              <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-300" />
+              <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-500" />
               <div className="space-y-1 text-sm">
-                <p className="font-semibold text-amber-200">Firebase is not configured yet</p>
-                <p className="text-amber-200/70">
-                  Copy <code className="rounded bg-black/30 px-1.5 py-0.5">.env.example</code> to{" "}
-                  <code className="rounded bg-black/30 px-1.5 py-0.5">.env.local</code> and add your
-                  NEXT_PUBLIC_FIREBASE_* values, then restart the dev server.
+                <p className="font-semibold text-amber-800 dark:text-amber-200">Firebase is not configured yet</p>
+                <p className="text-amber-700 dark:text-amber-300/80">
+                  Copy <code className="rounded bg-black/10 px-1.5 py-0.5">.env.example</code> to{" "}
+                  <code className="rounded bg-black/10 px-1.5 py-0.5">.env.local</code> and fill in your keys.
                 </p>
               </div>
             </div>
           </Card>
         )}
 
+        {/* Calm Hero Section */}
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3.5 py-1 text-xs font-medium text-violet-300">
-              <Sparkles className="size-3.5" />
-              <span>Created by Premkanth KS · Powered by Gemini AI</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
+              <span className="size-1.5 rounded-full bg-primary" />
+              <span>Created by Premkanth KS · Open & thoughtful study tool</span>
             </div>
 
-            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Turn every LeetCode solve into{" "}
-              <span className="bg-gradient-to-r from-violet-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                permanent memory.
-              </span>
-            </h1>
-
-            <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-              Most engineers solve hundreds of coding interview questions only to forget the core trick weeks later.
-              LeetCode Memory Hub organizes your real solves into topic folders, tracks your recall status, and provides
-              smart AI coaching only when you want it.
-            </p>
-
-            {/* Quick Benefits Bullet Points */}
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              <div className="flex items-center gap-2 text-sm text-foreground">
-                <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
-                <span>1-Click LeetCode Solves Sync</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-foreground">
-                <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
-                <span>Spaced-Repetition Status Tracking</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-foreground">
-                <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
-                <span>On-Demand Intuition & Code Walkthrough</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-foreground">
-                <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
-                <span>Full-Screen Daily AI Recommendations</span>
-              </div>
+            <div className="space-y-3">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl leading-tight">
+                Remember what you solve.
+              </h1>
+              <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
+                Solving questions is only half the work. LeetCode Memory Hub quietly preserves your real solutions,
+                tracks spaced revision dates, and coaches your problem intuition without overwhelm.
+              </p>
             </div>
 
             {/* CTA Buttons */}
@@ -254,26 +225,26 @@ export default function HomePage() {
                   size="lg"
                   onClick={handleGoogleSignIn}
                   disabled={isBusy}
-                  className="gap-2.5 bg-card border border-border text-foreground shadow-md hover:bg-muted"
+                  className="gap-2.5 bg-card border border-border text-foreground hover:bg-muted"
                 >
-                  <GoogleMark className="size-5" />
-                  {signingInProvider === "google" ? "Opening Google…" : "Continue with Google"}
+                  <GoogleMark className="size-4" />
+                  {signingInProvider === "google" ? "Connecting…" : "Continue with Google"}
                 </Button>
                 <Button
                   size="lg"
                   onClick={handleGithubSignIn}
                   disabled={isBusy}
-                  className="gap-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/25 hover:from-violet-500 hover:to-indigo-500"
+                  className="gap-2.5 bg-primary text-primary-foreground hover:opacity-90"
                 >
-                  <GithubMark className="size-5" />
-                  {signingInProvider === "github" ? "Opening GitHub…" : "Continue with GitHub"}
+                  <GithubMark className="size-4" />
+                  {signingInProvider === "github" ? "Connecting…" : "Continue with GitHub"}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Free to use forever · Connect your official LeetCode handle anytime · No password needed.
+                Free to use · Link your LeetCode profile whenever you like · No passwords to manage
               </p>
               {activeError && (
-                <div role="alert" className="mt-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+                <div role="alert" className="mt-2 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-800 dark:text-rose-300">
                   {activeError}
                 </div>
               )}
@@ -283,132 +254,87 @@ export default function HomePage() {
           <PreviewCard />
         </div>
 
-        {/* Live User Statistics Section */}
-        <section className="mt-20">
-          <div className="rounded-2xl border border-border bg-card/60 p-8 shadow-xl backdrop-blur-xl">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
-              <div>
-                <h2 className="text-lg font-bold text-foreground">Community Impact & Solves Tracked</h2>
-                <p className="text-xs text-muted-foreground">Trusted by engineers preparing for tech company rounds worldwide</p>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
-                <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Live Community Statistics</span>
-              </div>
-            </div>
+        {/* 3-Step Section: Solve -> Save -> Revisit */}
+        <section className="mt-24">
+          <div className="text-center max-w-xl mx-auto space-y-2 mb-12">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">A peaceful routine</p>
+            <h2 className="text-2xl font-semibold text-foreground">Three steps to permanent recall</h2>
+            <p className="text-sm text-muted-foreground">Built to feel as simple and calming as taking pencil notes.</p>
+          </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {USER_STATISTICS.map((stat) => (
-                <div key={stat.label} className="space-y-1">
-                  <p className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl tabular-nums">
-                    {stat.value}
-                  </p>
-                  <p className="text-sm font-semibold text-foreground/90">{stat.label}</p>
-                  <p className="text-xs text-muted-foreground">{stat.hint}</p>
-                </div>
-              ))}
-            </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card className="p-6 space-y-3">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Code2 className="size-5" />
+              </span>
+              <h3 className="text-base font-semibold text-foreground">1. Solve</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Solve problems naturally on LeetCode. Sync your accepted code in one click or paste anytime.
+              </p>
+            </Card>
+
+            <Card className="p-6 space-y-3">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <BookMarked className="size-5" />
+              </span>
+              <h3 className="text-base font-semibold text-foreground">2. Save</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Jot down the 1-line intuition trick and mark whether you feel Mastered, Needs Review, or Confused.
+              </p>
+            </Card>
+
+            <Card className="p-6 space-y-3">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <RotateCw className="size-5" />
+              </span>
+              <h3 className="text-base font-semibold text-foreground">3. Revisit</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Review at your own pace. Let gentle AI suggestions surface questions when you want targeted practice.
+              </p>
+            </Card>
           </div>
         </section>
 
-        {/* Why Are We Doing This Website & How It Works */}
-        <section className="mt-24 space-y-10">
-          <div className="mx-auto max-w-2xl text-center space-y-3">
-            <Badge variant="outline" className="border-violet-500/30 bg-violet-500/10 text-violet-300">
-              Why LeetCode Memory Hub?
-            </Badge>
-            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Why we built this and how it helps you win interviews
-            </h2>
-            <p className="text-base text-muted-foreground">
-              Most candidates fail coding interviews not because they didn&apos;t practice, but because they couldn&apos;t recall the core intuition under pressure. Here is our exact solution.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {WHY_USE_REASONS.map((reason) => (
-              <Card key={reason.title} className="p-6 transition-all hover:border-violet-500/40 hover:shadow-lg">
-                <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-violet-500/15 text-violet-400 ring-1 ring-violet-500/30">
-                  <reason.icon className="size-6" />
-                </span>
-                <h3 className="text-base font-bold text-foreground">{reason.title}</h3>
-                <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">{reason.body}</p>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* How It Is Used (3 Simple Steps) */}
-        <section className="mt-24 rounded-2xl border border-border bg-card/60 p-8 sm:p-12">
-          <div className="max-w-2xl space-y-2">
-            <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
-              Simple 3-Step Routine
-            </Badge>
-            <h2 className="text-2xl font-bold text-foreground sm:text-3xl">How to use LeetCode Memory Hub</h2>
-            <p className="text-sm text-muted-foreground">
-              Takes less than 2 minutes after each solve. Fits right into your daily study routine.
-            </p>
-          </div>
-
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
-            <div className="space-y-3 rounded-xl border border-border bg-background/50 p-5">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-violet-600 text-sm font-bold text-white">
-                1
-              </span>
-              <h3 className="font-semibold text-foreground">Sync or Add Your Solves</h3>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Enter your LeetCode handle. We pull your latest accepted solutions with their topics and difficulty tags instantly.
+        {/* Why this helps section (Warm & human) */}
+        <section className="mt-24 rounded-2xl border border-border bg-card p-8 sm:p-12">
+          <div className="grid items-center gap-8 md:grid-cols-[1.2fr_0.8fr]">
+            <div className="space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">Why this helps</p>
+              <h2 className="text-2xl font-semibold text-foreground">Quality of understanding over grind fatigue</h2>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                In real technical interviews, memorizing 500 solutions by brute repetition almost always falls apart under stress.
+                True confidence comes from recognizing invariant patterns—like knowing immediately why a prefix sum is needed instead of a two-pointer pass.
+              </p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                LeetCode Memory Hub removes all neon dashboard noise and treats your practice like a quiet learning log. You own your notes, you review on your schedule, and Gemini acts as a friendly tutor only when you ask for clarification.
               </p>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-border bg-background/50 p-5">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">
-                2
+            <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-muted/40 p-6 text-center space-y-3">
+              <span className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Brain className="size-6" />
               </span>
-              <h3 className="font-semibold text-foreground">Write The 1-Line "Trick"</h3>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Tag each question as Mastered, Needs Review, or Confused. Save a 1-sentence memo for the trick (e.g. "prefix sum + hash map difference").
-              </p>
-            </div>
-
-            <div className="space-y-3 rounded-xl border border-border bg-background/50 p-5">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-emerald-600 text-sm font-bold text-white">
-                3
-              </span>
-              <h3 className="font-semibold text-foreground">Prompt AI When You Need It</h3>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                No automatic AI pressure. Ask Gemini to break down code, test edge cases, or check your daily full-screen study plan when you are ready.
+              <h4 className="text-sm font-semibold text-foreground">Active Recall & Retention</h4>
+              <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
+                Reviewing 3 weak spots once a week yields higher interview conversion than grinding 10 new problems each night.
               </p>
             </div>
           </div>
         </section>
 
-        {/* User Reviews & Testimonials */}
-        <section className="mt-24 space-y-10">
-          <div className="mx-auto max-w-2xl text-center space-y-2">
-            <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-300">
-              Community Reviews
-            </Badge>
-            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Loved by engineers preparing for tech rounds
-            </h2>
-            <p className="text-sm text-muted-foreground">Real feedback from developers who turned their practice into offers.</p>
+        {/* Community & Reviews */}
+        <section className="mt-24 space-y-8">
+          <div className="text-center max-w-xl mx-auto space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Learner feedback</p>
+            <h2 className="text-2xl font-semibold text-foreground">Loved by engineers preparing thoughtfully</h2>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
             {REVIEWS.map((rev) => (
               <Card key={rev.name} className="flex flex-col justify-between p-6">
-                <div>
-                  <div className="mb-3 flex items-center gap-1 text-amber-400">
-                    {[...Array(rev.rating)].map((_, i) => (
-                      <Star key={i} className="size-4 fill-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-xs leading-relaxed text-muted-foreground italic">&ldquo;{rev.review}&rdquo;</p>
-                </div>
-
+                <p className="text-xs leading-relaxed text-muted-foreground italic">&ldquo;{rev.review}&rdquo;</p>
                 <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
-                  <span className="flex size-9 items-center justify-center rounded-full bg-violet-500/20 text-xs font-bold text-violet-300 ring-1 ring-violet-500/30">
+                  <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
                     {rev.avatar}
                   </span>
                   <div>
@@ -421,62 +347,20 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Creator & License Footer */}
-        <footer className="mt-24 border-t border-border pt-12">
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 shadow-md">
-                  <BookMarked className="size-4 text-white" />
-                </span>
-                <span className="font-bold text-foreground">LeetCode Memory Hub</span>
-              </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                An active recall revision platform and on-demand AI concept coach for serious interview preparation.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                License: <strong className="text-foreground">Premkanth KS</strong> · All rights reserved.
-              </p>
+        {/* Simple Footer */}
+        <footer className="mt-24 border-t border-border pt-10 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">LeetCode Memory Hub</span>
+              <span>·</span>
+              <span>Created by Premkanth KS</span>
             </div>
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">Creator Info</h4>
-              <div className="space-y-1.5 text-xs text-muted-foreground">
-                <p className="text-foreground font-medium">Premkanth KS</p>
-                <p>Creator & Lead Developer</p>
-                <a
-                  href="mailto:premkanthks@gmail.com"
-                  className="inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 transition-colors"
-                >
-                  <Mail className="size-3.5" />
-                  <span>premkanthks@gmail.com</span>
-                </a>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">Connect with Me</h4>
-              <p className="text-xs text-muted-foreground">
-                Have feedback, feature ideas, or want to collaborate? Feel free to reach out via email anytime.
-              </p>
-              <a
-                href="mailto:premkanthks@gmail.com"
-                className="inline-flex items-center gap-2 rounded-xl bg-card border border-border px-3.5 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors"
-              >
-                <Mail className="size-4 text-violet-400" />
-                <span>Email: premkanthks@gmail.com</span>
-              </a>
-            </div>
-          </div>
-
-          <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-border/60 py-6 text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} Premkanth KS. Licensed under Premkanth KS.</p>
             <div className="flex items-center gap-4">
-              <span>Next.js 16</span>
-              <span>•</span>
-              <span>Google Gemini AI</span>
-              <span>•</span>
-              <span>LeetCode API</span>
+              <a href="mailto:premkanthks@gmail.com" className="hover:text-foreground transition-colors">
+                premkanthks@gmail.com
+              </a>
+              <span>·</span>
+              <span>License: Premkanth KS</span>
             </div>
           </div>
         </footer>
@@ -485,44 +369,37 @@ export default function HomePage() {
   );
 }
 
-/** Static illustration of the dashboard preview */
+/** Static illustration of the gentle dashboard preview */
 function PreviewCard() {
   return (
-    <div className="relative">
-      <div aria-hidden="true" className="absolute -inset-6 rounded-[2rem] bg-violet-500/20 blur-3xl" />
-      <Card className="relative space-y-4 p-5 border-border bg-card shadow-2xl">
-        <div className="flex items-center justify-between">
+    <Card className="space-y-4 p-6 border-border bg-card shadow-sm">
+      <div className="flex items-center justify-between">
+        <div>
           <p className="text-sm font-semibold text-foreground">Two Sum</p>
-          <Badge variant="easy">Easy</Badge>
+          <p className="text-xs text-muted-foreground">leetcode.com/problems/two-sum</p>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {["Array", "Hash Table"].map((topic) => (
-            <span key={topic} className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-              {topic}
-            </span>
-          ))}
-        </div>
-        <div className="grid grid-cols-3 gap-1 rounded-lg bg-background p-1 text-xs">
-          <span className="rounded-md bg-emerald-500/15 py-1.5 text-center font-medium text-emerald-400 ring-1 ring-emerald-500/40">
-            Mastered
-          </span>
-          <span className="py-1.5 text-center text-muted-foreground">Needs Review</span>
-          <span className="py-1.5 text-center text-muted-foreground">Confused</span>
-        </div>
-        <p className="rounded-lg border border-border bg-background p-3 text-xs leading-relaxed text-muted-foreground">
-          Pattern: complement lookup. Store value → index in a hash map and check <code className="text-violet-400">target - x</code> before inserting.
-        </p>
+        <Badge variant="easy">Easy</Badge>
+      </div>
 
-        <div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.07] p-4">
-          <p className="mb-3 flex items-center gap-2 text-xs font-semibold text-violet-400">
-            <Sparkles className="size-3.5" /> AI Coach · Today
-          </p>
-          <div className="space-y-2 text-xs">
-            <p className="rounded-lg bg-background p-2.5 text-foreground/90">Concept: Sliding Window (variable size)</p>
-            <p className="rounded-lg bg-background p-2.5 text-foreground/90">Problem: Longest Substring Without Repeating Characters</p>
-          </div>
+      <div className="flex flex-wrap gap-1.5">
+        {["Array", "Hash Table"].map((topic) => (
+          <span key={topic} className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+            {topic}
+          </span>
+        ))}
+      </div>
+
+      <div className="rounded-xl border border-[var(--status-mastered-border)] bg-[var(--status-mastered-bg)] p-3 text-xs text-[var(--status-mastered-fg)]">
+        <span className="font-semibold">Mastered:</span> Store complement in a hash map and check <code className="font-mono">target - x</code> in one pass.
+      </div>
+
+      <div className="rounded-xl border border-border bg-muted/30 p-3.5 space-y-1.5 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5 font-medium text-foreground">
+          <Sparkles className="size-3.5 text-primary" />
+          <span>Today for you</span>
         </div>
-      </Card>
-    </div>
+        <p>1 problem ready for a gentle review: Longest Substring Without Repeating Characters</p>
+      </div>
+    </Card>
   );
 }

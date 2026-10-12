@@ -1,7 +1,5 @@
-import type { ReactNode } from "react";
-import { Brain, CircleCheck, CircleAlert, Layers, RotateCw, Trophy } from "lucide-react";
+import { Brain } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import type { SolvedProblem, UserProfile } from "@/lib/types";
 
 interface StatsOverviewProps {
@@ -18,41 +16,6 @@ function percentage(part: number, whole: number): number {
   return whole > 0 ? Math.round((part / whole) * 100) : 0;
 }
 
-type Tone = "violet" | "emerald" | "amber" | "rose";
-
-const TONE_CLASSES: Record<Tone, { line: string; chip: string }> = {
-  violet: { line: "via-violet-500/60", chip: "bg-violet-500/10" },
-  emerald: { line: "via-emerald-500/60", chip: "bg-emerald-500/10" },
-  amber: { line: "via-amber-500/60", chip: "bg-amber-500/10" },
-  rose: { line: "via-rose-500/60", chip: "bg-rose-500/10" },
-};
-
-interface StatCardProps {
-  label: string;
-  value: number;
-  hint: string;
-  icon: ReactNode;
-  tone: Tone;
-  loading: boolean;
-}
-
-function StatCard({ label, value, hint, icon, tone, loading }: StatCardProps) {
-  const classes = TONE_CLASSES[tone];
-  return (
-    <Card className="relative overflow-hidden p-5">
-      <div className={cn("absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent", classes.line)} />
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-zinc-400">{label}</p>
-        <span className={cn("rounded-lg p-2", classes.chip)}>{icon}</span>
-      </div>
-      <p className="mt-3 text-3xl font-bold tracking-tight text-zinc-50 tabular-nums">
-        {loading ? "–" : value.toLocaleString()}
-      </p>
-      <p className="mt-1 text-xs text-zinc-500">{hint}</p>
-    </Card>
-  );
-}
-
 export function StatsOverview({ profile, problems, loading }: StatsOverviewProps) {
   const total = pickCount(profile?.totalSolved, problems.length);
   const easy = pickCount(profile?.easySolved, problems.filter((p) => p.difficulty === "Easy").length);
@@ -64,79 +27,95 @@ export function StatsOverview({ profile, problems, loading }: StatsOverviewProps
   const needsReview = problems.filter((p) => p.memoryStatus === "Needs Review").length;
   const confused = problems.filter((p) => p.memoryStatus === "Confused").length;
 
+  const encouragementText =
+    needsReview > 0
+      ? `${needsReview} problems waiting for a gentle review`
+      : tracked > 0
+        ? "All tracked problems look healthy!"
+        : "Sync your LeetCode profile or add a problem to get started";
+
   return (
     <section aria-label="Progress overview" className="space-y-4">
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <StatCard
-          label="Total solved"
-          value={total}
-          hint={`${tracked} tracked in your hub`}
-          icon={<Trophy className="size-4 text-violet-300" />}
-          tone="violet"
-          loading={loading}
-        />
-        <StatCard
-          label="Easy"
-          value={easy}
-          hint={`${percentage(easy, total)}% of total`}
-          icon={<Layers className="size-4 text-emerald-300" />}
-          tone="emerald"
-          loading={loading}
-        />
-        <StatCard
-          label="Medium"
-          value={medium}
-          hint={`${percentage(medium, total)}% of total`}
-          icon={<Layers className="size-4 text-amber-300" />}
-          tone="amber"
-          loading={loading}
-        />
-        <StatCard
-          label="Hard"
-          value={hard}
-          hint={`${percentage(hard, total)}% of total`}
-          icon={<Layers className="size-4 text-rose-300" />}
-          tone="rose"
-          loading={loading}
-        />
-      </div>
+      {/* One Quiet Summary Row (Total, Easy, Medium, Hard) */}
+      <Card className="p-4 sm:p-5">
+        <div className="grid grid-cols-2 gap-4 divide-y divide-border sm:grid-cols-4 sm:divide-y-0 sm:divide-x sm:divide-border">
+          <div className="px-3 pt-2 sm:pt-0">
+            <p className="text-xs font-medium text-muted-foreground">Total Solved</p>
+            <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+              {loading ? "–" : total.toLocaleString()}
+            </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">{tracked} saved in notebook</p>
+          </div>
 
-      <Card className="p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="rounded-lg bg-indigo-500/10 p-2">
-              <Brain className="size-4 text-indigo-300" />
+          <div className="px-3 pt-2 sm:pt-0">
+            <p className="text-xs font-medium text-muted-foreground">Easy</p>
+            <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+              {loading ? "–" : easy.toLocaleString()}
+            </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">{percentage(easy, total)}% of solves</p>
+          </div>
+
+          <div className="px-3 pt-2 sm:pt-0">
+            <p className="text-xs font-medium text-muted-foreground">Medium</p>
+            <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+              {loading ? "–" : medium.toLocaleString()}
+            </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">{percentage(medium, total)}% of solves</p>
+          </div>
+
+          <div className="px-3 pt-2 sm:pt-0">
+            <p className="text-xs font-medium text-muted-foreground">Hard</p>
+            <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+              {loading ? "–" : hard.toLocaleString()}
+            </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">{percentage(hard, total)}% of solves</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Memory health: quiet multi-segment bar with encouraging line */}
+      <Card className="p-4 sm:p-5 space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Brain className="size-4" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-zinc-100">Memory health</p>
-              <p className="text-xs text-zinc-400">
-                {mastered} mastered · {needsReview} to review · {confused} confused
-                {total > tracked && (
-                  <span className="text-zinc-500"> ({tracked} tracked of {total} LeetCode solves)</span>
-                )}
-              </p>
+              <p className="text-sm font-semibold text-foreground">Memory Health</p>
+              <p className="text-xs text-muted-foreground">{encouragementText}</p>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-xs text-zinc-400">
-            <span className="flex items-center gap-1.5">
-              <CircleCheck className="size-3.5 text-emerald-400" /> {percentage(mastered, tracked)}% mastered
+
+          <div className="flex items-center gap-3 text-xs">
+            <span className="inline-flex items-center gap-1.5 text-xs text-[var(--status-mastered-fg)]">
+              <span className="size-2 rounded-full bg-emerald-500" /> {mastered} Mastered
             </span>
-            <span className="flex items-center gap-1.5">
-              <RotateCw className="size-3.5 text-amber-400" /> {needsReview} review
+            <span className="inline-flex items-center gap-1.5 text-xs text-[var(--status-review-fg)]">
+              <span className="size-2 rounded-full bg-amber-400" /> {needsReview} Review
             </span>
-            <span className="flex items-center gap-1.5">
-              <CircleAlert className="size-3.5 text-rose-400" /> {confused} confused
+            <span className="inline-flex items-center gap-1.5 text-xs text-[var(--status-confused-fg)]">
+              <span className="size-2 rounded-full bg-rose-400" /> {confused} Confused
             </span>
           </div>
         </div>
+
         <div
-          className="mt-4 flex h-2.5 overflow-hidden rounded-full bg-zinc-800"
+          className="flex h-2 overflow-hidden rounded-full bg-muted"
           role="img"
           aria-label={`${mastered} mastered, ${needsReview} needs review, ${confused} confused`}
         >
-          <div className="bg-emerald-500 transition-all duration-500" style={{ width: `${percentage(mastered, tracked)}%` }} />
-          <div className="bg-amber-400 transition-all duration-500" style={{ width: `${percentage(needsReview, tracked)}%` }} />
-          <div className="bg-rose-500 transition-all duration-500" style={{ width: `${percentage(confused, tracked)}%` }} />
+          <div
+            className="bg-emerald-500 transition-all duration-300"
+            style={{ width: `${percentage(mastered, tracked)}%` }}
+          />
+          <div
+            className="bg-amber-400 transition-all duration-300"
+            style={{ width: `${percentage(needsReview, tracked)}%` }}
+          />
+          <div
+            className="bg-rose-400 transition-all duration-300"
+            style={{ width: `${percentage(confused, tracked)}%` }}
+          />
         </div>
       </Card>
     </section>

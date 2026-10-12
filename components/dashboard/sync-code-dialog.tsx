@@ -2,18 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  AlertCircle,
   Bookmark,
   Check,
-  CheckCircle2,
-  ChevronRight,
-  Code2,
   Copy,
-  ExternalLink,
   FileCode,
-  Info,
-  MousePointerClick,
-  Sparkles,
   Terminal,
   Upload,
   Zap,
@@ -323,7 +315,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
         {/* Header */}
         <DialogHeader className="border-b border-border bg-card/80 px-6 py-4">
           <div className="flex items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-violet-500/15 text-violet-400 ring-1 ring-violet-500/30">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
               <Zap className="size-4" />
             </span>
             <div>
@@ -344,11 +336,11 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               className={cn(
                 "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 font-medium transition-all",
                 activeTab === "extension"
-                  ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                  ? "bg-card text-foreground shadow-xs ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Zap className="size-3.5 text-amber-400" />
+              <Zap className="size-3.5 text-primary" />
               <span>Browser Extension</span>
             </button>
             <button
@@ -357,11 +349,11 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               className={cn(
                 "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 font-medium transition-all",
                 activeTab === "bookmarklet"
-                  ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                  ? "bg-card text-foreground shadow-xs ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Bookmark className="size-3.5 text-violet-400" />
+              <Bookmark className="size-3.5 text-muted-foreground" />
               <span>1-Click Bookmarklet</span>
             </button>
             <button
@@ -370,11 +362,11 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               className={cn(
                 "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 font-medium transition-all",
                 activeTab === "console"
-                  ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                  ? "bg-card text-foreground shadow-xs ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Terminal className="size-3.5 text-indigo-400" />
+              <Terminal className="size-3.5 text-muted-foreground" />
               <span>Console</span>
             </button>
             <button
@@ -383,11 +375,11 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               className={cn(
                 "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 font-medium transition-all",
                 activeTab === "manual"
-                  ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                  ? "bg-card text-foreground shadow-xs ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <FileCode className="size-3.5 text-emerald-400" />
+              <FileCode className="size-3.5 text-muted-foreground" />
               <span>Manual Entry</span>
             </button>
           </div>
@@ -398,9 +390,9 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
           {/* TAB 0: BROWSER EXTENSION (RECOMMENDED & ZERO-FRICTION) */}
           {activeTab === "extension" && (
             <div className="space-y-5">
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+              <div className="rounded-xl border border-status-review-border bg-status-review-bg p-4">
                 <div className="flex items-start gap-3">
-                  <Zap className="mt-0.5 size-5 shrink-0 text-amber-400" />
+                  <Zap className="mt-0.5 size-5 shrink-0 text-status-review-text" />
                   <div className="space-y-1 text-xs leading-relaxed text-muted-foreground">
                     <p className="font-semibold text-foreground text-sm">Official LeetCode Memory Hub Extension</p>
                     <p>
@@ -411,7 +403,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               </div>
 
               {/* Step 1: Your Linking Credentials */}
-              <div className="rounded-2xl border border-border bg-card/60 p-5 space-y-3">
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-xs">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Step 1: Your Account Linking Info
                 </h4>
@@ -433,14 +425,14 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                     }}
                     className="gap-1.5 text-xs border-border"
                   >
-                    {copiedUserId ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+                    {copiedUserId ? <Check className="size-3.5 text-status-mastered-text" /> : <Copy className="size-3.5" />}
                     <span>{copiedUserId ? "Copied!" : "Copy User ID"}</span>
                   </Button>
                 </div>
               </div>
 
               {/* Step 2: How to load the extension */}
-              <div className="rounded-2xl border border-border bg-card/60 p-5 space-y-3">
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-xs">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Step 2: Load Extension in Chrome (Takes 30 Seconds)
                 </h4>
@@ -456,7 +448,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                   </li>
                   <li>
                     Select the extension folder located inside this project at:
-                    <div className="mt-1 rounded-lg border border-border bg-background p-2 font-mono text-[11px] text-violet-300 select-all">
+                    <div className="mt-1 rounded-lg border border-border bg-background p-2 font-mono text-[11px] text-foreground select-all">
                       d:\leetcode-memo\extension
                     </div>
                   </li>
@@ -469,7 +461,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                 <p>
                   1. Pin the extension in Chrome and click its icon.<br />
                   2. Paste your User ID & LeetCode username.<br />
-                  3. Open any tab on <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-violet-400 hover:underline">leetcode.com</a> and click <b>&ldquo;⚡ Sync Now to Hub&rdquo;</b>.<br />
+                  3. Open any tab on <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-primary hover:underline">leetcode.com</a> and click <b>&ldquo;⚡ Sync Now to Hub&rdquo;</b>.<br />
                   4. Return to this dialog and click <b>&ldquo;Import from Clipboard&rdquo;</b> below to instantly save your solutions into your Memory Hub!
                 </p>
 
@@ -477,7 +469,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                   size="sm"
                   onClick={() => void handleImportFromClipboard()}
                   disabled={importing}
-                  className="w-full gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-xs font-semibold text-white shadow-md shadow-violet-500/20"
+                  className="w-full gap-2 bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                 >
                   <Upload className="size-3.5" />
                   <span>{importing ? "Importing Solutions…" : "Import Captured Solutions from Clipboard"}</span>
@@ -492,9 +484,9 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
           {/* TAB 1: BOOKMARKLET METHOD (FIXED & RELIABLE) */}
           {activeTab === "bookmarklet" && (
             <div className="space-y-5">
-              <div className="rounded-xl border border-violet-500/30 bg-violet-500/10 p-4">
+              <div className="rounded-xl border border-border bg-muted/40 p-4">
                 <div className="flex items-start gap-3">
-                  <Bookmark className="mt-0.5 size-5 shrink-0 text-violet-400" />
+                  <Bookmark className="mt-0.5 size-5 shrink-0 text-primary" />
                   <div className="space-y-1 text-xs leading-relaxed text-muted-foreground">
                     <p className="font-semibold text-foreground text-sm">How the 1-Click Bookmarklet Works</p>
                     <p>
@@ -505,7 +497,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               </div>
 
               {/* Way A: Drag the Button */}
-              <div className="rounded-2xl border border-border bg-card/60 p-5 space-y-3">
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-xs">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Option A: Drag Button to Bookmarks Bar
                 </h4>
@@ -522,17 +514,17 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                       e.dataTransfer.setData("text/uri-list", bookmarkletHref);
                       e.dataTransfer.setData("text/plain", bookmarkletHref);
                     }}
-                    className="inline-flex cursor-grab select-none items-center gap-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 font-semibold text-xs text-white shadow-lg shadow-violet-500/25 ring-2 ring-violet-400/30 transition-transform active:cursor-grabbing hover:scale-105"
+                    className="inline-flex cursor-grab select-none items-center gap-2.5 rounded-xl bg-primary px-6 py-3 font-semibold text-xs text-primary-foreground shadow-xs transition-transform active:cursor-grabbing hover:opacity-90"
                     title="Drag me to your browser's Bookmarks bar!"
                   >
-                    <Zap className="size-4 fill-white" />
+                    <Zap className="size-4" />
                     <span>⚡ Sync LeetCode Code</span>
                   </a>
                 </div>
               </div>
 
               {/* Way B: Copy Bookmarklet Code (If dragging is tricky) */}
-              <div className="rounded-2xl border border-border bg-card/60 p-5 space-y-3">
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-xs">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Option B: Create Bookmark Manually (100% Reliable)
                 </h4>
@@ -540,7 +532,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                   <li>
                     Right-click your browser&apos;s Bookmarks bar &rarr; click <b>&ldquo;Add page&rdquo;</b> (or <b>&ldquo;Add Bookmark&rdquo;</b>).
                   </li>
-                  <li>Set the Name to: <code className="rounded bg-muted px-1.5 py-0.5 text-violet-300">⚡ Sync LeetCode</code>.</li>
+                  <li>Set the Name to: <code className="rounded bg-muted px-1.5 py-0.5 text-foreground font-mono">⚡ Sync LeetCode</code>.</li>
                   <li>
                     Click the button below to copy the bookmarklet code, then paste it into the <b>URL</b> field:
                   </li>
@@ -554,7 +546,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                     onClick={handleCopyBookmarkUrl}
                     className="gap-2 border-border bg-background text-xs text-foreground"
                   >
-                    {copiedBookmarkCode ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+                    {copiedBookmarkCode ? <Check className="size-3.5 text-status-mastered-text" /> : <Copy className="size-3.5" />}
                     <span>{copiedBookmarkCode ? "Bookmarklet Code Copied!" : "Copy Bookmarklet Code (URL)"}</span>
                   </Button>
                 </div>
@@ -564,14 +556,14 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-2 text-xs">
                 <p className="font-semibold text-foreground">What happens when you click it on LeetCode?</p>
                 <p className="text-muted-foreground leading-relaxed">
-                  Open any page on <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-violet-400 hover:underline">leetcode.com</a> and click your new bookmark. A purple notification appears on LeetCode and automatically transfers your solutions. If direct network communication is blocked by browser restrictions, click <b>Import from Clipboard</b> below!
+                  Open any page on <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-primary hover:underline">leetcode.com</a> and click your new bookmark. A purple notification appears on LeetCode and automatically transfers your solutions. If direct network communication is blocked by browser restrictions, click <b>Import from Clipboard</b> below!
                 </p>
 
                 <Button
                   size="sm"
                   onClick={() => void handleImportFromClipboard()}
                   disabled={importing}
-                  className="mt-2 w-full gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-xs font-semibold text-white"
+                  className="mt-2 w-full gap-2 bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                 >
                   <Upload className="size-3.5" />
                   <span>{importing ? "Importing Solutions…" : "Import from Clipboard (Fallback)"}</span>
@@ -586,9 +578,9 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
           {/* TAB 2: CONSOLE SCRIPT METHOD (PROVEN TO WORK) */}
           {activeTab === "console" && (
             <div className="space-y-5">
-              <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4">
+              <div className="rounded-xl border border-border bg-muted/40 p-4">
                 <div className="flex items-start gap-3">
-                  <Terminal className="mt-0.5 size-5 shrink-0 text-indigo-400" />
+                  <Terminal className="mt-0.5 size-5 shrink-0 text-primary" />
                   <div className="space-y-1 text-xs leading-relaxed text-muted-foreground">
                     <p className="font-semibold text-foreground text-sm">Console Sync Method</p>
                     <p>
@@ -598,22 +590,22 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                 </div>
               </div>
 
-              <div className="space-y-3 rounded-2xl border border-border bg-card/60 p-5">
+              <div className="space-y-3 rounded-2xl border border-border bg-card p-5 shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Step 1: Copy Sync Script</span>
                   <Button
                     size="sm"
                     onClick={handleCopyScript}
-                    className="gap-2 bg-violet-600 text-xs text-white hover:bg-violet-500"
+                    className="gap-2 bg-primary text-xs text-primary-foreground hover:bg-primary/90"
                   >
-                    {copiedScript ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+                    {copiedScript ? <Check className="size-3.5 text-status-mastered-text" /> : <Copy className="size-3.5" />}
                     <span>{copiedScript ? "Script Copied!" : "Copy Sync Script"}</span>
                   </Button>
                 </div>
 
                 <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
                   <p>
-                    1. Switch to your <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-violet-400 hover:underline">LeetCode tab</a>.
+                    1. Switch to your <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-primary hover:underline">LeetCode tab</a>.
                   </p>
                   <p>
                     2. Press <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground border border-border">F12</kbd> (or Right Click &rarr; Inspect) &rarr; switch to the <b>Console</b> tab.
@@ -624,7 +616,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                 </div>
               </div>
 
-              <div className="space-y-3 rounded-2xl border border-border bg-card/60 p-5">
+              <div className="space-y-3 rounded-2xl border border-border bg-card p-5 shadow-xs">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Step 2: Complete Import</span>
                 <p className="text-xs text-muted-foreground">
                   Once the green toast appears on your LeetCode page, click below to load all problems into your hub:
@@ -634,7 +626,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                   size="sm"
                   onClick={() => void handleImportFromClipboard()}
                   disabled={importing}
-                  className="w-full gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-xs font-semibold text-white"
+                  className="w-full gap-2 bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                 >
                   <Upload className="size-3.5" />
                   <span>{importing ? "Importing Solutions…" : "Import from Clipboard"}</span>
@@ -649,9 +641,9 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
           {/* TAB 3: NEW ALTERNATIVE METHOD (DIRECT MANUAL CODE PASTE) */}
           {activeTab === "manual" && (
             <form onSubmit={handleSaveManualProblem} className="space-y-4">
-              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+              <div className="rounded-xl border border-border bg-muted/40 p-4">
                 <div className="flex items-start gap-3">
-                  <FileCode className="mt-0.5 size-5 shrink-0 text-emerald-400" />
+                  <FileCode className="mt-0.5 size-5 shrink-0 text-primary" />
                   <div className="space-y-1 text-xs leading-relaxed text-muted-foreground">
                     <p className="font-semibold text-foreground text-sm">Direct Problem & Solution Entry</p>
                     <p>
@@ -671,7 +663,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                   onChange={(e) => setManualTitle(e.target.value)}
                   placeholder="e.g. Two Sum, 3Sum, or longest-substring-without-repeating-characters"
                   required
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-violet-500 focus:outline-none"
+                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary focus:outline-none"
                 />
               </div>
 
@@ -682,7 +674,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                 <select
                   value={manualLang}
                   onChange={(e) => setManualLang(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground focus:border-violet-500 focus:outline-none"
+                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
                 >
                   <option value="java">Java</option>
                   <option value="python3">Python 3</option>
@@ -704,7 +696,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                   placeholder="Paste your accepted solution code here..."
                   rows={8}
                   required
-                  className="w-full rounded-xl border border-border bg-background p-3.5 font-mono text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-violet-500 focus:outline-none"
+                  className="w-full rounded-xl border border-border bg-background p-3.5 font-mono text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary focus:outline-none"
                 />
               </div>
 
@@ -715,7 +707,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               <Button
                 type="submit"
                 disabled={!manualTitle.trim() || !manualCode.trim() || savingManual}
-                className="w-full gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-xs font-semibold text-white hover:from-emerald-500 hover:to-teal-500"
+                className="w-full gap-2 bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 <Check className="size-3.5" />
                 <span>{savingManual ? "Saving to Hub…" : "Save Solution Code to Hub"}</span>

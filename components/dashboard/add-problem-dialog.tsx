@@ -56,7 +56,7 @@ export function AddProblemDialog({ open, onOpenChange, onAdd, onAdded }: AddProb
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="problem-input" className="text-xs font-medium text-zinc-400">
+            <label htmlFor="problem-input" className="text-xs font-medium text-muted-foreground">
               Problem URL or slug
             </label>
             <Input
@@ -69,7 +69,7 @@ export function AddProblemDialog({ open, onOpenChange, onAdd, onAdded }: AddProb
               spellCheck={false}
             />
             {error && (
-              <p role="alert" className="text-xs text-rose-400">
+              <p role="alert" className="text-xs text-status-confused-text">
                 {error}
               </p>
             )}

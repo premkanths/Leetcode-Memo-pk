@@ -64,7 +64,7 @@ export function UsernameDialog({ open, onOpenChange, initialValue, required, onS
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="leetcode-username" className="text-xs font-medium text-zinc-400">
+            <label htmlFor="leetcode-username" className="text-xs font-medium text-muted-foreground">
               LeetCode username
             </label>
             <Input
@@ -77,9 +77,9 @@ export function UsernameDialog({ open, onOpenChange, initialValue, required, onS
               spellCheck={false}
               aria-invalid={invalid}
             />
-            {invalid && <p className="text-xs text-rose-400">Use letters, numbers, hyphens or underscores only.</p>}
+            {invalid && <p className="text-xs text-status-confused-text">Use letters, numbers, hyphens or underscores only.</p>}
             {error && (
-              <p role="alert" className="text-xs text-rose-400">
+              <p role="alert" className="text-xs text-status-confused-text">
                 {error}
               </p>
             )}

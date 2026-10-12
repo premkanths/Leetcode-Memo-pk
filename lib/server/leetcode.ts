@@ -10,7 +10,7 @@ import { HttpError } from "./errors";
 
 const LEETCODE_GRAPHQL_URL = "https://leetcode.com/graphql";
 const REQUEST_TIMEOUT_MS = 10_000;
-const RECENT_SUBMISSION_LIMIT = 100;
+const RECENT_SUBMISSION_LIMIT = 20;
 const QUESTION_BATCH_SIZE = 20;
 
 const PROFILE_QUERY = `
