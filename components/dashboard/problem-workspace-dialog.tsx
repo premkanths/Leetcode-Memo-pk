@@ -186,38 +186,6 @@ export function ProblemWorkspaceDialog({
         if (!isCancelled) setLoadingDetails(false);
       });
 
-    // Automatically trigger Gemini AI summary immediately upon opening
-    setLoadingAi(true);
-    fetch("/api/problem-ai", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        problemTitle: problem.title,
-        problemSlug: problem.titleSlug,
-        difficulty: problem.difficulty,
-        topics: problem.topics,
-        code: problem.code,
-        codeLanguage: problem.codeLanguage || "java",
-        notes: problem.notes,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (!isCancelled) {
-          if (data.summary) {
-            setAiSummary(data.summary);
-          } else if (data.error) {
-            setAiError(data.error);
-          }
-        }
-      })
-      .catch((err) => {
-        if (!isCancelled) setAiError(getErrorMessage(err, "Failed to connect to AI Coach."));
-      })
-      .finally(() => {
-        if (!isCancelled) setLoadingAi(false);
-      });
-
     return () => {
       isCancelled = true;
     };
@@ -829,13 +797,34 @@ export function ProblemWorkspaceDialog({
 
             {/* Coach Message Stream */}
             <div ref={chatScrollRef} className="flex-1 space-y-4 overflow-y-auto p-5 text-xs">
-              {/* Initial Auto-Summary Card */}
+              {/* Initial On-Demand Prompt / Summary Card */}
+              {!loadingAi && !aiSummary && !aiError && chatMessages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-violet-500/20 bg-gradient-to-b from-violet-500/10 to-transparent p-6 text-center">
+                  <span className="mb-3 flex size-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-600/30">
+                    <Sparkles className="size-5" />
+                  </span>
+                  <h4 className="text-sm font-semibold text-zinc-100">Gemini AI Coach Ready</h4>
+                  <p className="mt-1 max-w-xs text-[11px] leading-relaxed text-zinc-400">
+                    AI analysis generates only when you request it. Choose a topic prompt below or generate a complete problem breakdown.
+                  </p>
+
+                  <Button
+                    size="sm"
+                    onClick={() => void handleRegenerateAi()}
+                    className="mt-4 gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-xs text-white shadow-md hover:from-violet-500 hover:to-indigo-500"
+                  >
+                    <Sparkles className="size-3.5" />
+                    <span>Generate Full Breakdown</span>
+                  </Button>
+                </div>
+              ) : null}
+
               {loadingAi && !aiSummary ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/5 p-8 text-center">
                   <Loader2 className="mb-3 size-6 animate-spin text-violet-400" />
                   <p className="font-medium text-violet-200">Analyzing your solution…</p>
                   <p className="mt-1 max-w-xs text-[11px] text-violet-300/70">
-                    Summarizing the question, walking through your Java code, and verifying complexities.
+                    Summarizing the question, walking through your code, and verifying complexities.
                   </p>
                 </div>
               ) : aiError ? (

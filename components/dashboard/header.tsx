@@ -1,8 +1,9 @@
 "use client";
 
 import type { User } from "firebase/auth";
-import { BookMarked, LogOut, Pencil, Plus, RefreshCw, Zap } from "lucide-react";
+import { BookMarked, LogOut, Moon, Pencil, Plus, RefreshCw, Sun, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 
 interface DashboardHeaderProps {
@@ -51,10 +52,11 @@ export function DashboardHeader({
   onEditUsername,
   onSignOut,
 }: DashboardHeaderProps) {
+  const { theme, toggleTheme } = useTheme();
   const effectiveName = displayName || user.displayName || user.email || "GitHub user";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-zinc-950/70 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[1720px] flex-wrap items-center justify-between gap-3 px-3 py-3 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 shadow-lg shadow-violet-500/25">
@@ -91,6 +93,17 @@ export function DashboardHeader({
               <p className="text-[11px] text-zinc-500">{lastSyncedLabel}</p>
             </div>
           </button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            className="size-8.5 rounded-xl border-border bg-card/60 text-foreground"
+            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            aria-label="Toggle light and dark theme"
+          >
+            {theme === "dark" ? <Sun className="size-4 text-amber-300" /> : <Moon className="size-4 text-violet-600" />}
+          </Button>
 
           <Button
             variant="outline"
