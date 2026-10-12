@@ -189,12 +189,15 @@ export async function generateCoachingPlan(request: RecommendationRequest): Prom
       const fallbackResult = await getModel(fallbackModel).generateContent(buildUserPrompt(request));
       text = fallbackResult.response.text();
     } catch (fallbackError) {
-      if (fallbackError instanceof GoogleGenerativeAIFetchError && fallbackError.status === 429) {
-        throw new HttpError(429, "AI quota reached for now. Please try again later.", { cause: fallbackError });
-      }
-      throw new HttpError(502, "The AI coach is unavailable right now. Please try again.", { cause: fallbackError });
+      console.warn("Both Gemini models failed, using deterministic fallback plan:", fallbackError);
+      return generateFallbackPlan(request);
     }
   }
 
-  return parseCoachingPlan(text);
+  try {
+    return parseCoachingPlan(text);
+  } catch (parseError) {
+    console.warn("Failed to parse AI output, using deterministic fallback plan:", parseError);
+    return generateFallbackPlan(request);
+  }
 }

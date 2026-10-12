@@ -28,9 +28,14 @@ async function verifyRecommendations(
     .map((item) => item.titleSlug)
     .filter((slug): slug is string => slug !== null && !solvedSlugs.has(slug));
 
-  const verified: Map<string, LeetCodeProblem> = candidateSlugs.length
-    ? await fetchQuestionMetadata(candidateSlugs)
-    : new Map<string, LeetCodeProblem>();
+  let verified = new Map<string, LeetCodeProblem>();
+  if (candidateSlugs.length > 0) {
+    try {
+      verified = await fetchQuestionMetadata(candidateSlugs);
+    } catch (err) {
+      console.warn("Could not fetch LeetCode question metadata, falling back to direct items:", err);
+    }
+  }
 
   const recommendations: Recommendation[] = [];
 
@@ -41,15 +46,14 @@ async function verifyRecommendations(
       const slug = item.titleSlug;
       if (!slug || solvedSlugs.has(slug)) return;
       const problem = verified.get(slug);
-      if (!problem) return;
 
       recommendations.push({
         id,
         type: "problem",
-        title: problem.title,
+        title: problem ? problem.title : item.title,
         topic: item.topic,
         reason: item.reason,
-        difficulty: problem.difficulty,
+        difficulty: problem ? problem.difficulty : item.difficulty,
         url: buildProblemUrl(slug),
         titleSlug: slug,
       });
