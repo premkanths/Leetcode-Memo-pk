@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "LeetCode Memory Hub Sync",
+  "version": "1.0.0",
+  "description": "Automatically syncs accepted LeetCode solutions and code into your LeetCode Memory Hub.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://leetcode.com/*",
+    "http://localhost/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LeetCode Memory Hub Sync"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

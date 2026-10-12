@@ -36,9 +36,10 @@ interface SyncCodeDialogProps {
 }
 
 export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }: SyncCodeDialogProps) {
-  const [activeTab, setActiveTab] = useState<"bookmarklet" | "console" | "manual">("bookmarklet");
+  const [activeTab, setActiveTab] = useState<"extension" | "bookmarklet" | "console" | "manual">("extension");
   const [copiedScript, setCopiedScript] = useState(false);
   const [copiedBookmarkCode, setCopiedBookmarkCode] = useState(false);
+  const [copiedUserId, setCopiedUserId] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
@@ -319,9 +320,22 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
           <div className="mt-4 flex rounded-xl border border-border bg-muted/50 p-1 text-xs">
             <button
               type="button"
+              onClick={() => setActiveTab("extension")}
+              className={cn(
+                "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 font-medium transition-all",
+                activeTab === "extension"
+                  ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Zap className="size-3.5 text-amber-400" />
+              <span>Browser Extension</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveTab("bookmarklet")}
               className={cn(
-                "flex flex-1 items-center justify-center gap-2 rounded-lg py-2 font-medium transition-all",
+                "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 font-medium transition-all",
                 activeTab === "bookmarklet"
                   ? "bg-card text-foreground shadow-sm ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground"
@@ -334,33 +348,113 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               type="button"
               onClick={() => setActiveTab("console")}
               className={cn(
-                "flex flex-1 items-center justify-center gap-2 rounded-lg py-2 font-medium transition-all",
+                "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 font-medium transition-all",
                 activeTab === "console"
                   ? "bg-card text-foreground shadow-sm ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
               <Terminal className="size-3.5 text-indigo-400" />
-              <span>Browser Console</span>
+              <span>Console</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("manual")}
               className={cn(
-                "flex flex-1 items-center justify-center gap-2 rounded-lg py-2 font-medium transition-all",
+                "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 font-medium transition-all",
                 activeTab === "manual"
                   ? "bg-card text-foreground shadow-sm ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
               <FileCode className="size-3.5 text-emerald-400" />
-              <span>Manual Paste / New Problem</span>
+              <span>Manual Entry</span>
             </button>
           </div>
         </DialogHeader>
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* TAB 0: BROWSER EXTENSION (RECOMMENDED & ZERO-FRICTION) */}
+          {activeTab === "extension" && (
+            <div className="space-y-5">
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+                <div className="flex items-start gap-3">
+                  <Zap className="mt-0.5 size-5 shrink-0 text-amber-400" />
+                  <div className="space-y-1 text-xs leading-relaxed text-muted-foreground">
+                    <p className="font-semibold text-foreground text-sm">Official LeetCode Memory Hub Extension</p>
+                    <p>
+                      Install the extension once in Chrome/Brave/Edge. Whenever you are on LeetCode, click <b>Sync Now</b> to automatically extract all accepted solves & codes straight into your Memory Hub!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 1: Your Linking Credentials */}
+              <div className="rounded-2xl border border-border bg-card/60 p-5 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Step 1: Your Account Linking Info
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  Copy your User ID below to paste into the extension popup:
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 rounded-xl border border-border bg-background px-3.5 py-2 font-mono text-xs text-foreground select-all">
+                    {userId}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(userId);
+                      setCopiedUserId(true);
+                      setTimeout(() => setCopiedUserId(false), 2000);
+                    }}
+                    className="gap-1.5 text-xs border-border"
+                  >
+                    {copiedUserId ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+                    <span>{copiedUserId ? "Copied!" : "Copy User ID"}</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Step 2: How to load the extension */}
+              <div className="rounded-2xl border border-border bg-card/60 p-5 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Step 2: Load Extension in Chrome (Takes 30 Seconds)
+                </h4>
+                <ol className="list-decimal list-inside space-y-2 text-xs text-muted-foreground leading-relaxed">
+                  <li>
+                    Open Chrome and navigate to <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">chrome://extensions/</code>
+                  </li>
+                  <li>
+                    Toggle on <b>&ldquo;Developer mode&rdquo;</b> in the top-right corner.
+                  </li>
+                  <li>
+                    Click <b>&ldquo;Load unpacked&rdquo;</b> in the top-left corner.
+                  </li>
+                  <li>
+                    Select the extension folder located inside this project at:
+                    <div className="mt-1 rounded-lg border border-border bg-background p-2 font-mono text-[11px] text-violet-300 select-all">
+                      d:\leetcode-memo\extension
+                    </div>
+                  </li>
+                </ol>
+              </div>
+
+              {/* Step 3: Sync from LeetCode */}
+              <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-2 text-xs text-muted-foreground leading-relaxed">
+                <p className="font-semibold text-foreground">Step 3: Click Sync</p>
+                <p>
+                  1. Pin the extension in Chrome and click its icon.<br />
+                  2. Paste your User ID & LeetCode username.<br />
+                  3. Open any tab on <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-violet-400 hover:underline">leetcode.com</a> and click <b>&ldquo;⚡ Sync Now to Hub&rdquo;</b>!
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: BOOKMARKLET METHOD (FIXED & RELIABLE) */}
           {activeTab === "bookmarklet" && (
             <div className="space-y-5">
