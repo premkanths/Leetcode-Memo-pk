@@ -164,25 +164,36 @@ export async function generateCoachingPlan(request: RecommendationRequest): Prom
     return generateFallbackPlan(request);
   }
 
-  const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
-    model: getGeminiModelName(),
-    systemInstruction: SYSTEM_PROMPT,
-    generationConfig: {
-      temperature: 0.4,
-      maxOutputTokens: 1500,
-      responseMimeType: "application/json",
-    },
-  });
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const preferredModel = getGeminiModelName();
+  const fallbackModel = "gemini-3.5-flash-lite";
+
+  const getModel = (name: string) =>
+    genAI.getGenerativeModel({
+      model: name,
+      systemInstruction: SYSTEM_PROMPT,
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 1500,
+        responseMimeType: "application/json",
+      },
+    });
 
   let text: string;
   try {
-    const result = await model.generateContent(buildUserPrompt(request));
+    const result = await getModel(preferredModel).generateContent(buildUserPrompt(request));
     text = result.response.text();
   } catch (error) {
-    if (error instanceof GoogleGenerativeAIFetchError && error.status === 429) {
-      throw new HttpError(429, "AI quota reached for now. Please try again later.", { cause: error });
+    console.warn(`Recommendations with ${preferredModel} failed, trying fallback ${fallbackModel}:`, error);
+    try {
+      const fallbackResult = await getModel(fallbackModel).generateContent(buildUserPrompt(request));
+      text = fallbackResult.response.text();
+    } catch (fallbackError) {
+      if (fallbackError instanceof GoogleGenerativeAIFetchError && fallbackError.status === 429) {
+        throw new HttpError(429, "AI quota reached for now. Please try again later.", { cause: fallbackError });
+      }
+      throw new HttpError(502, "The AI coach is unavailable right now. Please try again.", { cause: fallbackError });
     }
-    throw new HttpError(502, "The AI coach is unavailable right now. Please try again.", { cause: error });
   }
 
   return parseCoachingPlan(text);

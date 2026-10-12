@@ -54,11 +54,14 @@ export async function POST(request: NextRequest) {
     } = body;
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const modelName = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash";
-    const model = genAI.getGenerativeModel({
-      model: modelName,
-      systemInstruction: SYSTEM_INSTRUCTION,
-    });
+    const preferredModel = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash";
+    const fallbackModel = "gemini-3.5-flash-lite";
+
+    const getModel = (name: string) =>
+      genAI.getGenerativeModel({
+        model: name,
+        systemInstruction: SYSTEM_INSTRUCTION,
+      });
 
     // Strip HTML tags from questionContent if present
     const cleanQuestionText = questionContent
@@ -78,37 +81,51 @@ export async function POST(request: NextRequest) {
       .join("\n\n");
 
     // Case 1: An ongoing interactive chat follow-up
-    if (userPrompt && Array.isArray(messages) && messages.length > 0) {
-      const history = messages.map((m) => ({
+    if (userPrompt) {
+      // Exclude the current prompt from previous history to avoid duplicate turns
+      const previousMessages = Array.isArray(messages)
+        ? messages.slice(0, -1)
+        : [];
+
+      const history = previousMessages.map((m) => ({
         role: m.role === "user" ? "user" : "model",
         parts: [{ text: m.content }],
       }));
 
-      const chat = model.startChat({
-        history: [
-          {
-            role: "user",
-            parts: [{ text: `Here is the LeetCode problem context I am studying:\n\n${contextPrefix}` }],
-          },
-          {
-            role: "model",
-            parts: [
-              {
-                text: `I've analyzed the problem "${problemTitle}" and your code. I am ready to guide you. What would you like to explore or practice?`,
-              },
-            ],
-          },
-          ...history,
-        ],
-      });
+      const executeChat = async (mName: string) => {
+        const mInstance = getModel(mName);
+        const chat = mInstance.startChat({
+          history: [
+            {
+              role: "user",
+              parts: [{ text: `Here is the LeetCode problem context I am studying:\n\n${contextPrefix}` }],
+            },
+            {
+              role: "model",
+              parts: [
+                {
+                  text: `I've analyzed the problem "${problemTitle}" and your code. I am ready to guide you. What would you like to explore or practice?`,
+                },
+              ],
+            },
+            ...history,
+          ],
+        });
+        const result = await chat.sendMessage(userPrompt);
+        return result.response.text();
+      };
 
-      const result = await chat.sendMessage(userPrompt);
-      const reply = result.response.text();
-      return NextResponse.json({ reply });
+      try {
+        const reply = await executeChat(preferredModel);
+        return NextResponse.json({ reply });
+      } catch (err) {
+        console.warn(`Chat with ${preferredModel} failed, trying fallback ${fallbackModel}:`, err);
+        const reply = await executeChat(fallbackModel);
+        return NextResponse.json({ reply });
+      }
     }
 
-    // Case 2: Initial automatic summary upon opening
-    // As requested: "first thing it to do is summarise the question , code , and output , later on can ask wheat ever user needs on that problem"
+    // Case 2: Initial breakdown upon clicking Generate Full Breakdown or Refresh
     const initialPrompt = [
       `Provide an instant, elegant breakdown for "${problemTitle}":`,
       "",
@@ -122,10 +139,21 @@ export async function POST(request: NextRequest) {
     ].join("\n");
 
     const fullPrompt = `${contextPrefix}\n\n---\n\n${initialPrompt}`;
-    const result = await model.generateContent(fullPrompt);
-    const summary = result.response.text();
 
-    return NextResponse.json({ summary });
+    const executeGenerate = async (mName: string) => {
+      const mInstance = getModel(mName);
+      const result = await mInstance.generateContent(fullPrompt);
+      return result.response.text();
+    };
+
+    try {
+      const summary = await executeGenerate(preferredModel);
+      return NextResponse.json({ summary });
+    } catch (err) {
+      console.warn(`Generate with ${preferredModel} failed, trying fallback ${fallbackModel}:`, err);
+      const summary = await executeGenerate(fallbackModel);
+      return NextResponse.json({ summary });
+    }
   } catch (error) {
     console.error("Problem AI error:", error);
     return NextResponse.json(
