@@ -109,8 +109,11 @@ export function StatsOverview({ profile, problems, loading }: StatsOverviewProps
             </span>
             <div>
               <p className="text-sm font-semibold text-zinc-100">Memory health</p>
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-zinc-400">
                 {mastered} mastered · {needsReview} to review · {confused} confused
+                {total > tracked && (
+                  <span className="text-zinc-500"> ({tracked} tracked of {total} LeetCode solves)</span>
+                )}
               </p>
             </div>
           </div>

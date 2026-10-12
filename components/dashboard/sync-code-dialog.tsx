@@ -26,6 +26,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { upsertProblems } from "@/lib/hub-service";
+import type { LeetCodeProblem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface SyncCodeDialogProps {
@@ -231,7 +233,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
       const trimmed = text.trim();
       if (trimmed.startsWith("(") || trimmed.includes("HUB_URL") || !trimmed.startsWith("{")) {
         throw new Error(
-          "Your clipboard currently contains the script code, not your LeetCode solves yet! Please run the bookmarklet or script on LeetCode first, then click Import here."
+          "Your clipboard currently contains the script code, not your LeetCode solves yet! Please run the extension, bookmarklet, or script on LeetCode first, then click Import here."
         );
       }
 
@@ -240,6 +242,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
         throw new Error("No submissions array found in clipboard. Please trigger the sync on LeetCode first!");
       }
 
+      setImportStatus("⏳ Resolving problem metadata & tags...");
       const res = await fetch("/api/sync-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -249,7 +252,17 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Import failed");
 
-      setImportStatus(`🎉 Successfully imported ${data.total} solutions & code! Refreshing dashboard...`);
+      const resolvedProblems: LeetCodeProblem[] = data.problems || [];
+      if (resolvedProblems.length === 0) {
+        throw new Error("No problems could be resolved from submissions.");
+      }
+
+      setImportStatus(`💾 Saving ${resolvedProblems.length} solutions into your Memory Hub...`);
+      const upsertResult = await upsertProblems(userId, resolvedProblems, "sync");
+
+      setImportStatus(
+        `🎉 Successfully imported ${resolvedProblems.length} solutions (${upsertResult.added} new, ${upsertResult.existing} updated)! Refreshing...`
+      );
       setTimeout(() => {
         window.location.reload();
       }, 1200);
@@ -284,7 +297,14 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to save solution code");
+      if (!res.ok) throw new Error(data.error || "Failed to process solution code");
+
+      const resolvedProblems: LeetCodeProblem[] = data.problems || [];
+      if (resolvedProblems.length === 0) {
+        throw new Error("Could not resolve problem metadata.");
+      }
+
+      await upsertProblems(userId, resolvedProblems, "manual");
 
       setManualStatus("✅ Solution saved! Refreshing...");
       setTimeout(() => {
@@ -444,13 +464,27 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               </div>
 
               {/* Step 3: Sync from LeetCode */}
-              <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-2 text-xs text-muted-foreground leading-relaxed">
-                <p className="font-semibold text-foreground">Step 3: Click Sync</p>
+              <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-3 text-xs text-muted-foreground leading-relaxed">
+                <p className="font-semibold text-foreground">Step 3: Click Sync & Complete Import</p>
                 <p>
                   1. Pin the extension in Chrome and click its icon.<br />
                   2. Paste your User ID & LeetCode username.<br />
-                  3. Open any tab on <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-violet-400 hover:underline">leetcode.com</a> and click <b>&ldquo;⚡ Sync Now to Hub&rdquo;</b>!
+                  3. Open any tab on <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-violet-400 hover:underline">leetcode.com</a> and click <b>&ldquo;⚡ Sync Now to Hub&rdquo;</b>.<br />
+                  4. Return to this dialog and click <b>&ldquo;Import from Clipboard&rdquo;</b> below to instantly save your solutions into your Memory Hub!
                 </p>
+
+                <Button
+                  size="sm"
+                  onClick={() => void handleImportFromClipboard()}
+                  disabled={importing}
+                  className="w-full gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-xs font-semibold text-white shadow-md shadow-violet-500/20"
+                >
+                  <Upload className="size-3.5" />
+                  <span>{importing ? "Importing Solutions…" : "Import Captured Solutions from Clipboard"}</span>
+                </Button>
+                {importStatus && (
+                  <p className="text-center text-xs font-medium text-foreground">{importStatus}</p>
+                )}
               </div>
             </div>
           )}

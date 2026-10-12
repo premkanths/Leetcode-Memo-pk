@@ -90,7 +90,10 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           if (response && response.success) {
-            showStatus(`✅ Successfully synced ${response.count} solutions into your Memory Hub!`, "success");
+            showStatus(
+              `✅ Captured ${response.count} solutions! Go to Memory Hub & click "Import Captured Solutions" to complete.`,
+              "success"
+            );
           } else {
             showStatus(`❌ ${(response && response.error) || "Sync failed"}`, "error");
           }

@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchQuestionMetadata } from "@/lib/server/leetcode";
-import { upsertProblems } from "@/lib/hub-service";
 import type { LeetCodeProblem, Difficulty } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -75,14 +74,14 @@ export async function POST(request: NextRequest) {
       console.warn("Could not fetch metadata for all slugs, using defaults", err);
     }
 
-    const problemsToUpsert: LeetCodeProblem[] = [];
+    const resolvedProblems: LeetCodeProblem[] = [];
     for (const [slug, sub] of submissionMap) {
       const meta = metadataMap.get(slug);
       const difficulty: Difficulty = meta ? meta.difficulty : "Medium";
       const topics: string[] = meta ? meta.topics : [];
       const title = meta ? meta.title : sub.title;
 
-      problemsToUpsert.push({
+      resolvedProblems.push({
         title,
         titleSlug: slug,
         difficulty,
@@ -96,19 +95,16 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const result = await upsertProblems(userId, problemsToUpsert, "sync");
-
     return NextResponse.json(
       {
         success: true,
-        added: result.added,
-        existing: result.existing,
-        total: problemsToUpsert.length,
+        problems: resolvedProblems,
+        total: resolvedProblems.length,
       },
       { headers: CORS_HEADERS }
     );
   } catch (error) {
-    console.error("Failed to sync submissions and code:", error);
+    console.error("Failed to process submissions and code:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Sync failed" },
       { status: 500, headers: CORS_HEADERS }

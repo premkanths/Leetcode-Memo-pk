@@ -86,24 +86,38 @@ async function syncLeetCodeSolves(userId, username, hubUrl) {
     return { success: false, count: 0, error: "No accepted submissions found." };
   }
 
-  // 3. Post directly to Memory Hub backend
+  // 3. Send to Memory Hub backend to resolve metadata
   const targetUrl = (hubUrl || "http://localhost:3000").replace(/\/$/, "");
   showFloatingToast(`🚀 Syncing ${submissions.length} problems to Memory Hub...`, "#8b5cf6");
 
-  const postRes = await fetch(`${targetUrl}/api/sync-code`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, submissions })
-  });
+  let serverResolved = false;
+  let totalCount = submissions.length;
 
-  const postData = await postRes.json();
-  if (!postRes.ok) {
-    showFloatingToast(`❌ Sync error: ${postData.error || "Failed"}`, "#ef4444");
-    throw new Error(postData.error || "Failed to sync to Memory Hub");
+  try {
+    const postRes = await fetch(`${targetUrl}/api/sync-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, submissions })
+    });
+    if (postRes.ok) {
+      const postData = await postRes.json();
+      serverResolved = true;
+      totalCount = postData.total || submissions.length;
+    }
+  } catch(e) {
+    console.warn("Could not POST directly to Memory Hub backend:", e);
   }
 
-  showFloatingToast(`✅ Successfully synced ${postData.total || submissions.length} solutions & code!`, "#10b981");
-  return { success: true, count: postData.total || submissions.length };
+  // Always copy submissions payload to clipboard as instant guarantee
+  try {
+    await navigator.clipboard.writeText(JSON.stringify({ userId, submissions }));
+  } catch(e) {}
+
+  showFloatingToast(
+    `✅ ${totalCount} solutions captured! Return to Memory Hub and click "Import from Clipboard" if needed.`,
+    "#10b981"
+  );
+  return { success: true, count: totalCount };
 }
 
 function showFloatingToast(text, borderColor) {

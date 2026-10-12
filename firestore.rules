@@ -32,14 +32,11 @@ service cloud.firestore {
       match /solvedProblems/{problemSlug} {
         allow read: if isOwner(uid);
         allow create, update: if isOwner(uid)
-          && request.resource.data.title is string
-          && request.resource.data.title.size() <= 300
-          && isValidDifficulty(request.resource.data.difficulty)
-          && isValidMemoryStatus(request.resource.data.memoryStatus)
-          && request.resource.data.notes is string
-          && request.resource.data.notes.size() <= 10000
-          && request.resource.data.topics is list
-          && request.resource.data.topics.size() <= 20;
+          && (!('title' in request.resource.data) || (request.resource.data.title is string && request.resource.data.title.size() <= 300))
+          && (!('difficulty' in request.resource.data) || isValidDifficulty(request.resource.data.difficulty))
+          && (!('memoryStatus' in request.resource.data) || isValidMemoryStatus(request.resource.data.memoryStatus))
+          && (!('notes' in request.resource.data) || (request.resource.data.notes is string && request.resource.data.notes.size() <= 10000))
+          && (!('topics' in request.resource.data) || (request.resource.data.topics is list && request.resource.data.topics.size() <= 30));
         allow delete: if false;
       }
 
