@@ -59,46 +59,89 @@ document.addEventListener("DOMContentLoaded", () => {
     syncBtn.textContent = "Syncing with LeetCode...";
 
     try {
-      // Find active leetcode.com tab
-      const [tab] = await chrome.tabs.query({ url: "*://*.leetcode.com/*" });
-      if (!tab) {
-        showStatus("Please open a LeetCode tab first (e.g. leetcode.com/problemset), then click Sync!", "error");
+      // Find the current active tab or any open leetcode.com tab
+      const activeTabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      let targetTab = activeTabs.find((t) => t.url && t.url.includes("leetcode.com"));
+
+      if (!targetTab) {
+        const allLeetCodeTabs = await chrome.tabs.query({ url: "*://*.leetcode.com/*" });
+        targetTab = allLeetCodeTabs[0];
+      }
+
+      if (!targetTab) {
+        showStatus("Please open a LeetCode tab first (e.g. leetcode.com), then click Sync!", "error");
         syncBtn.disabled = false;
         syncBtn.innerHTML = "<span>⚡ Sync Now to Hub</span>";
         return;
       }
 
-      // Send message to content script in leetcode tab
-      chrome.tabs.sendMessage(
-        tab.id,
-        {
-          action: "SYNC_SOLUTIONS",
-          hubUrl,
-          userId,
-          username,
-        },
-        (response) => {
-          syncBtn.disabled = false;
-          syncBtn.innerHTML = "<span>⚡ Sync Now to Hub</span>";
+      // Helper to send message with auto-injection fallback if content script was not ready
+      const sendSyncMessage = () => {
+        chrome.tabs.sendMessage(
+          targetTab.id,
+          {
+            action: "SYNC_SOLUTIONS",
+            hubUrl,
+            userId,
+            username,
+          },
+          (response) => {
+            syncBtn.disabled = false;
+            syncBtn.innerHTML = "<span>⚡ Sync Now to Hub</span>";
 
-          if (chrome.runtime.lastError) {
-            showStatus(
-              "Could not communicate with the LeetCode tab. Please refresh your LeetCode page and try again!",
-              "error"
-            );
-            return;
-          }
+            if (chrome.runtime.lastError) {
+              // Content script might not be injected yet (e.g. page was open before extension installed)
+              // Attempt programmatic injection
+              if (chrome.scripting) {
+                chrome.scripting.executeScript(
+                  {
+                    target: { tabId: targetTab.id },
+                    files: ["content.js"],
+                  },
+                  () => {
+                    if (chrome.runtime.lastError) {
+                      showStatus("Please reload your LeetCode page and click Sync again!", "error");
+                      return;
+                    }
+                    // Retry once after injecting
+                    setTimeout(() => {
+                      chrome.tabs.sendMessage(
+                        targetTab.id,
+                        { action: "SYNC_SOLUTIONS", hubUrl, userId, username },
+                        (retryRes) => {
+                          if (retryRes && retryRes.success) {
+                            showStatus(`✅ Captured ${retryRes.count} solutions! Go to Memory Hub & import.`, "success");
+                          } else {
+                            showStatus(`❌ ${(retryRes && retryRes.error) || "Please reload LeetCode page and retry."}`, "error");
+                          }
+                        }
+                      );
+                    }, 300);
+                  }
+                );
+                return;
+              }
 
-          if (response && response.success) {
-            showStatus(
-              `✅ Captured ${response.count} solutions! Go to Memory Hub & click "Import Captured Solutions" to complete.`,
-              "success"
-            );
-          } else {
-            showStatus(`❌ ${(response && response.error) || "Sync failed"}`, "error");
+              showStatus(
+                "Could not communicate with the LeetCode tab. Please refresh your LeetCode page and try again!",
+                "error"
+              );
+              return;
+            }
+
+            if (response && response.success) {
+              showStatus(
+                `✅ Captured ${response.count} solutions! Go to Memory Hub & click "Import Captured Solutions" to complete.`,
+                "success"
+              );
+            } else {
+              showStatus(`❌ ${(response && response.error) || "Sync failed"}`, "error");
+            }
           }
-        }
-      );
+        );
+      };
+
+      sendSyncMessage();
     } catch (err) {
       syncBtn.disabled = false;
       syncBtn.innerHTML = "<span>⚡ Sync Now to Hub</span>";

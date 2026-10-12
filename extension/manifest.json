@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "description": "Automatically syncs accepted LeetCode solutions and code into your LeetCode Memory Hub.",
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab",
+    "scripting"
   ],
   "host_permissions": [
     "https://leetcode.com/*",
