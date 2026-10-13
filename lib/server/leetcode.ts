@@ -132,17 +132,21 @@ export async function fetchQuestionMetadata(slugs: string[]): Promise<Map<string
 
   for (let offset = 0; offset < unique.length; offset += QUESTION_BATCH_SIZE) {
     const chunk = unique.slice(offset, offset + QUESTION_BATCH_SIZE);
-    const variables = Object.fromEntries(chunk.map((slug, i) => [`s${i}`, slug]));
-    const data = await graphqlRequest<Record<string, QuestionNode | null>>(
-      buildQuestionBatchQuery(chunk.length),
-      variables,
-    );
+    try {
+      const variables = Object.fromEntries(chunk.map((slug, i) => [`s${i}`, slug]));
+      const data = await graphqlRequest<Record<string, QuestionNode | null>>(
+        buildQuestionBatchQuery(chunk.length),
+        variables,
+      );
 
-    chunk.forEach((slug, i) => {
-      const node = data[`q${i}`];
-      const problem = node ? toLeetCodeProblem(node) : null;
-      if (problem) result.set(slug, problem);
-    });
+      chunk.forEach((slug, i) => {
+        const node = data[`q${i}`];
+        const problem = node ? toLeetCodeProblem(node) : null;
+        if (problem) result.set(slug, problem);
+      });
+    } catch (err) {
+      console.warn(`Failed to fetch metadata batch at offset ${offset}:`, err);
+    }
   }
 
   return result;

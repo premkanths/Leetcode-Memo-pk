@@ -2,10 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  AlertCircle,
   Bookmark,
   Check,
+  ChevronDown,
+  ChevronUp,
   Copy,
   FileCode,
+  FileUp,
+  Loader2,
   Terminal,
   Upload,
   Zap,
@@ -18,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { upsertProblems } from "@/lib/hub-service";
+import { syncUserProblemsAndStats } from "@/lib/hub-service";
 import type { LeetCodeProblem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +41,8 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
   const [copiedUserId, setCopiedUserId] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [showPasteBox, setShowPasteBox] = useState(false);
+  const [pastedJson, setPastedJson] = useState("");
 
   // Manual code paste states
   const [manualTitle, setManualTitle] = useState("");
@@ -45,15 +52,31 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
   const [manualStatus, setManualStatus] = useState<string | null>(null);
 
   const bookmarkRef = useRef<HTMLAnchorElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (content) {
+        void processSubmissionsPayload(content);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
 
   const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
   const username = leetcodeUsername || "OHntGXNFKf";
 
   // Full-featured universal sync script that executes inside leetcode.com
   // Features:
-  // 1. Automatically posts directly back to Memory Hub if possible (CORS enabled)
-  // 2. Automatically copies submissions payload to clipboard as reliable fallback
-  // 3. Shows sleek animated overlay on LeetCode with progress
+  // 1. Paginates through LeetCode's submission history to extract ALL solved questions (140+), not just recent 20
+  // 2. Extracts accepted code, language, runtime, memory, and timestamp for every solve
+  // 3. Multi-method copy (execCommand + writeText + clickable overlay buttons on LeetCode)
+  // 4. Downloadable JSON backup button directly on the LeetCode toast
   const buildScript = () => `(async function(){
   const HUB_URL = "${origin}";
   const USER_ID = "${userId}";
@@ -62,8 +85,8 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
   // Create UI overlay on LeetCode
   const toast = document.createElement("div");
   toast.id = "lc-memo-sync-toast";
-  toast.style.cssText = "position:fixed;top:24px;right:24px;z-index:2147483647;background:#09090b;color:#f4f4f5;padding:18px 24px;border-radius:16px;border:1.5px solid #8b5cf6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;box-shadow:0 20px 40px rgba(0,0,0,0.8);display:flex;flex-direction:column;gap:8px;max-width:380px;line-height:1.5;";
-  toast.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">⚡</span><strong style="color:#c4b5fd;font-size:15px;">LeetCode Memory Hub Sync</strong></div><div id="lc-status-msg" style="color:#a1a1aa;font-size:12px;">Connecting to your LeetCode profile (' + USERNAME + ')...</div>';
+  toast.style.cssText = "position:fixed;top:20px;right:20px;z-index:2147483647;background:#09090b;color:#f4f4f5;padding:18px 22px;border-radius:16px;border:1.5px solid #8b5cf6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;box-shadow:0 20px 40px rgba(0,0,0,0.85);display:flex;flex-direction:column;gap:10px;max-width:420px;line-height:1.5;";
+  toast.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">⚡</span><div><strong style="color:#c4b5fd;font-size:15px;display:block;">LeetCode Memory Hub Sync</strong><span style="color:#a1a1aa;font-size:11px;">Extracting all solved problems for ' + USERNAME + '</span></div></div><div id="lc-status-msg" style="color:#e4e4e7;font-size:12px;background:#18181b;padding:8px 12px;border-radius:8px;border:1px solid #27272a;">Connecting to your LeetCode session...</div>';
   const existing = document.getElementById("lc-memo-sync-toast");
   if (existing) existing.remove();
   document.body.appendChild(toast);
@@ -78,81 +101,131 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
 
   try {
     let submissions = [];
+    const seenSlugs = new Set();
 
-    setMsg("Fetching recent accepted submissions...", "#c4b5fd");
+    // Strategy 1: Fetch complete history via LeetCode REST submissions API with pagination
+    setMsg("Fetching complete submission history (all solved problems)...", "#c4b5fd");
+    let offset = 0;
+    let hasNext = true;
+    let page = 0;
+    const maxPages = 40; // up to 2,000 submissions
 
-    // 1. Fetch recent accepted submission list from LeetCode GraphQL
-    try {
-      const gqlRes = await fetch("https://leetcode.com/graphql", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "query recentAc($username: String!) { recentAcSubmissionList(username: $username, limit: 30) { id title titleSlug timestamp } }",
-          variables: { username: USERNAME }
-        })
-      });
-      const gqlData = await gqlRes.json();
-      const list = gqlData.data?.recentAcSubmissionList || [];
-
-      setMsg("Found " + list.length + " solves. Extracting code...", "#c4b5fd");
-
-      for (let i = 0; i < list.length; i++) {
-        const item = list[i];
-        try {
-          const detailRes = await fetch("https://leetcode.com/graphql", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              query: "query subDetails($id: Int!) { submissionDetails(submissionId: $id) { code lang { name verboseName } runtimeDisplay memoryDisplay } }",
-              variables: { id: Number(item.id) }
-            })
-          });
-          const detailData = await detailRes.json();
-          const details = detailData.data?.submissionDetails;
-          if (details && details.code) {
-            submissions.push({
-              title: item.title,
-              code: details.code,
-              lang: details.lang?.name || "java",
-              runtime: details.runtimeDisplay || "",
-              memory: details.memoryDisplay || "",
-              timestamp: Number(item.timestamp)
-            });
-            setMsg("Extracted code for: " + item.title + " (" + submissions.length + "/" + list.length + ")", "#e0e7ff");
-          }
-        } catch(e) {}
-      }
-    } catch(e) {}
-
-    // 2. Fallback to submissions REST endpoint if GraphQL yielded 0 items
-    if (submissions.length === 0) {
+    while (hasNext && page < maxPages) {
+      page++;
+      setMsg("Loading submissions (page " + page + ", " + submissions.length + " unique problems found so far)...", "#c4b5fd");
       try {
-        setMsg("Checking REST submissions endpoint...", "#c4b5fd");
-        const res = await fetch("https://leetcode.com/api/submissions/?offset=0&limit=50");
-        if (res.ok) {
-          const data = await res.json();
-          const dump = data.submissions_dump || [];
-          const accepted = dump.filter(s => s.status_display === "Accepted");
-          submissions = accepted.map(s => ({
-            title: s.title,
-            code: s.code,
-            lang: s.lang,
-            runtime: s.runtime || "",
-            memory: s.memory || "",
-            timestamp: s.timestamp
-          }));
+        const res = await fetch("https://leetcode.com/api/submissions/?offset=" + offset + "&limit=50");
+        if (!res.ok) break;
+        const data = await res.json();
+        const dump = data.submissions_dump || [];
+        if (dump.length === 0) break;
+
+        for (const s of dump) {
+          if (s.status_display === "Accepted" && s.code) {
+            const rawSlug = s.title_slug || s.title || "";
+            const slug = rawSlug.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+            if (slug && !seenSlugs.has(slug)) {
+              seenSlugs.add(slug);
+              submissions.push({
+                title: s.title,
+                code: s.code,
+                lang: s.lang || "java",
+                runtime: s.runtime || "",
+                memory: s.memory || "",
+                timestamp: s.timestamp || Math.floor(Date.now() / 1000)
+              });
+            }
+          }
+        }
+
+        hasNext = Boolean(data.has_next);
+        offset += 50;
+        await new Promise(r => setTimeout(r, 80));
+      } catch (err) {
+        console.warn("Submissions pagination error:", err);
+        break;
+      }
+    }
+
+    // Strategy 2: If REST endpoint returned 0 items, fallback to GraphQL recentAc
+    if (submissions.length === 0) {
+      setMsg("Checking recent submissions via GraphQL fallback...", "#c4b5fd");
+      try {
+        const gqlRes = await fetch("https://leetcode.com/graphql", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: "query recentAc($username: String!) { recentAcSubmissionList(username: $username, limit: 50) { id title titleSlug timestamp } }",
+            variables: { username: USERNAME }
+          })
+        });
+        const gqlData = await gqlRes.json();
+        const list = gqlData.data?.recentAcSubmissionList || [];
+
+        for (let i = 0; i < list.length; i++) {
+          const item = list[i];
+          try {
+            const detailRes = await fetch("https://leetcode.com/graphql", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                query: "query subDetails($id: Int!) { submissionDetails(submissionId: $id) { code lang { name verboseName } runtimeDisplay memoryDisplay } }",
+                variables: { id: Number(item.id) }
+              })
+            });
+            const detailData = await detailRes.json();
+            const details = detailData.data?.submissionDetails;
+            if (details && details.code) {
+              const slug = item.titleSlug || item.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-");
+              if (!seenSlugs.has(slug)) {
+                seenSlugs.add(slug);
+                submissions.push({
+                  title: item.title,
+                  code: details.code,
+                  lang: details.lang?.name || "java",
+                  runtime: details.runtimeDisplay || "",
+                  memory: details.memoryDisplay || "",
+                  timestamp: Number(item.timestamp)
+                });
+              }
+            }
+          } catch(e) {}
         }
       } catch(e) {}
     }
 
     if (submissions.length === 0) {
       toast.style.borderColor = "#f59e0b";
-      setMsg("No accepted submissions with code found on this account yet.", "#fcd34d");
-      setTimeout(() => toast.remove(), 5000);
+      setMsg("No accepted submissions found. Make sure you are logged into leetcode.com!", "#fcd34d");
+      setTimeout(() => toast.remove(), 7000);
       return;
     }
 
-    // Try Direct Automatic POST to Memory Hub (Zero-Click)
+    const payload = JSON.stringify({ userId: USER_ID, submissions });
+
+    // Multi-method background copy
+    let copiedSuccess = false;
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = payload;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      ta.style.top = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      copiedSuccess = document.execCommand("copy");
+      document.body.removeChild(ta);
+    } catch(e) {}
+
+    if (!copiedSuccess) {
+      try {
+        await navigator.clipboard.writeText(payload);
+        copiedSuccess = true;
+      } catch(e) {}
+    }
+
+    // Try Direct Automatic POST to Memory Hub (Zero-Click if CORS allows)
     let autoSynced = false;
     try {
       setMsg("Sending " + submissions.length + " problems directly to Memory Hub...", "#a7f3d0");
@@ -164,23 +237,45 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
       if (postRes.ok) {
         autoSynced = true;
       }
-    } catch(err) {
-      // Cross-origin network restriction or local port difference, fallback to clipboard
-    }
-
-    // Always copy payload to clipboard as foolproof backup
-    try {
-      const payload = JSON.stringify({ userId: USER_ID, submissions });
-      await navigator.clipboard.writeText(payload);
-    } catch(e) {}
+    } catch(err) {}
 
     toast.style.borderColor = "#10b981";
-    if (autoSynced) {
-      toast.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">🎉</span><strong style="color:#6ee7b7;font-size:15px;">Auto-Sync Complete!</strong></div><div style="color:#d1fae5;font-size:12px;">Successfully transferred <b>' + submissions.length + '</b> problems & code into Memory Hub! Return to your dashboard tab and refresh.</div>';
-    } else {
-      toast.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">✅</span><strong style="color:#6ee7b7;font-size:15px;">' + submissions.length + ' Solutions Copied!</strong></div><div style="color:#d1fae5;font-size:12px;">Switch back to your Memory Hub tab and click <b>"Step 2: Import from Clipboard"</b>!</div>';
+    toast.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">🎉</span><div><strong style="color:#6ee7b7;font-size:15px;display:block;">' + submissions.length + ' Solves Extracted!</strong><span style="color:#a7f3d0;font-size:11px;">All unique problem solutions captured with code</span></div></div>' +
+      (autoSynced ? '<div style="color:#d1fae5;font-size:12px;background:#064e3b;padding:8px 12px;border-radius:8px;">✨ Transferred automatically to Memory Hub! Refresh your dashboard tab.</div>' : '<div style="color:#d1fae5;font-size:12px;">Click below to copy your solves to clipboard:</div>') +
+      '<div style="display:flex;gap:8px;margin-top:4px;">' +
+        '<button id="lc-copy-btn" style="flex:1;cursor:pointer;background:#059669;color:#fff;border:none;border-radius:10px;padding:9px 14px;font-weight:600;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px;">' + (copiedSuccess ? '✅ Copied! Click to Re-copy' : '📋 Click to Copy Solves') + '</button>' +
+        '<button id="lc-dl-btn" style="cursor:pointer;background:#27272a;color:#e4e4e7;border:1px solid #3f3f46;border-radius:10px;padding:9px 12px;font-size:12px;">📥 Download JSON</button>' +
+      '</div>' +
+      '<div style="color:#a1a1aa;font-size:11px;">Return to your Memory Hub tab and click <b>Import from Clipboard</b>!</div>';
+
+    const copyBtn = document.getElementById("lc-copy-btn");
+    if (copyBtn) {
+      copyBtn.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(payload);
+          copyBtn.textContent = "✅ Copied to Clipboard!";
+          copyBtn.style.background = "#10b981";
+        } catch(e) {
+          copyBtn.textContent = "Use Download JSON instead";
+        }
+      };
     }
-    setTimeout(() => toast.remove(), 9000);
+
+    const dlBtn = document.getElementById("lc-dl-btn");
+    if (dlBtn) {
+      dlBtn.onclick = () => {
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "leetcode-solves.json";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        dlBtn.textContent = "✅ Downloaded!";
+      };
+    }
   } catch (err) {
     toast.style.borderColor = "#ef4444";
     toast.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">❌</span><strong style="color:#fca5a5;font-size:15px;">Sync Interrupted</strong></div><div style="color:#fecaca;font-size:12px;">' + (err.message || "An unexpected error occurred.") + '</div>';
@@ -191,10 +286,9 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
   const rawScript = buildScript();
 
   // Create clean bookmarklet URL: javascript:(function(){...})();
-  // Minified one-liner format prevents browser URL truncation and parsing failures
   const minifiedScript = rawScript
-    .replace(/\/\/.*/g, "") // remove comments
-    .replace(/\n\s*/g, " ") // join lines
+    .replace(/\/\/.*/g, "")
+    .replace(/\n\s*/g, " ")
     .trim();
 
   const bookmarkletHref = `javascript:${encodeURIComponent(minifiedScript)}`;
@@ -217,24 +311,35 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
     setTimeout(() => setCopiedBookmarkCode(false), 2500);
   };
 
-  const handleImportFromClipboard = async () => {
+  const processSubmissionsPayload = async (rawText: string) => {
     setImporting(true);
     setImportStatus(null);
     try {
-      const text = await navigator.clipboard.readText();
-      const trimmed = text.trim();
+      const trimmed = rawText.trim();
+      if (!trimmed) {
+        throw new Error("Payload is empty. Please copy your solves from LeetCode first.");
+      }
+
       if (trimmed.startsWith("(") || trimmed.includes("HUB_URL") || !trimmed.startsWith("{")) {
+        setShowPasteBox(true);
         throw new Error(
-          "Your clipboard currently contains the script code, not your LeetCode solves yet! Please run the extension, bookmarklet, or script on LeetCode first, then click Import here."
+          "Your clipboard currently contains the script code, not your LeetCode solves yet! On LeetCode, please check the green toast in the corner and click '📋 Click to Copy Solves' (or click 'Download JSON' and upload it below)."
         );
       }
 
-      const parsed = JSON.parse(trimmed);
-      if (!parsed.submissions || !Array.isArray(parsed.submissions) || parsed.submissions.length === 0) {
-        throw new Error("No submissions array found in clipboard. Please trigger the sync on LeetCode first!");
+      let parsed: { userId?: string; submissions?: unknown[] };
+      try {
+        parsed = JSON.parse(trimmed);
+      } catch {
+        setShowPasteBox(true);
+        throw new Error("Invalid JSON format. Please re-copy from the LeetCode toast or paste directly below.");
       }
 
-      setImportStatus("⏳ Resolving problem metadata & tags...");
+      if (!parsed.submissions || !Array.isArray(parsed.submissions) || parsed.submissions.length === 0) {
+        throw new Error("No submissions array found in payload. Please run the sync on LeetCode first!");
+      }
+
+      setImportStatus(`⏳ Resolving problem metadata & tags for ${parsed.submissions.length} problems...`);
       const res = await fetch("/api/sync-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -249,11 +354,11 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
         throw new Error("No problems could be resolved from submissions.");
       }
 
-      setImportStatus(`💾 Saving ${resolvedProblems.length} solutions into your Memory Hub...`);
-      const upsertResult = await upsertProblems(userId, resolvedProblems, "sync");
+      setImportStatus(`💾 Saving all ${resolvedProblems.length} solutions into your Memory Hub...`);
+      const upsertResult = await syncUserProblemsAndStats(userId, resolvedProblems);
 
       setImportStatus(
-        `🎉 Successfully imported ${resolvedProblems.length} solutions (${upsertResult.added} new, ${upsertResult.existing} updated)! Refreshing...`
+        `🎉 Successfully imported all ${resolvedProblems.length} solutions (${upsertResult.added} new, ${upsertResult.existing} updated)! Refreshing dashboard...`
       );
       setTimeout(() => {
         window.location.reload();
@@ -262,6 +367,20 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
       setImportStatus(err instanceof Error ? `❌ ${err.message}` : "❌ Import failed");
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handleImportFromClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      await processSubmissionsPayload(text);
+    } catch (err) {
+      setShowPasteBox(true);
+      setImportStatus(
+        err instanceof Error
+          ? `❌ ${err.message}`
+          : "❌ Could not read clipboard. Please paste the JSON data directly into the box below."
+      );
     }
   };
 
@@ -296,7 +415,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
         throw new Error("Could not resolve problem metadata.");
       }
 
-      await upsertProblems(userId, resolvedProblems, "manual");
+      await syncUserProblemsAndStats(userId, resolvedProblems);
 
       setManualStatus("✅ Solution saved! Refreshing...");
       setTimeout(() => {
@@ -308,6 +427,135 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
       setSavingManual(false);
     }
   };
+
+  const renderImportSection = (title: string, subtitle: string) => (
+    <div className="space-y-3.5 rounded-2xl border border-border bg-card p-5 shadow-xs">
+      <div>
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</span>
+        <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={handleFileUpload}
+      />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <Button
+          size="sm"
+          type="button"
+          onClick={() => void handleImportFromClipboard()}
+          disabled={importing}
+          className="gap-2 bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+        >
+          {importing ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+          <span>{importing ? "Importing Solutions…" : "Import from Clipboard"}</span>
+        </Button>
+
+        <Button
+          size="sm"
+          type="button"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={importing}
+          className="gap-2 border-border text-xs font-medium text-foreground hover:bg-muted"
+        >
+          <FileUp className="size-3.5 text-muted-foreground" />
+          <span>Upload JSON File</span>
+        </Button>
+      </div>
+
+      <div className="pt-0.5">
+        <button
+          type="button"
+          onClick={() => setShowPasteBox(!showPasteBox)}
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
+        >
+          {showPasteBox ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+          <span>{showPasteBox ? "Hide Manual Paste Box" : "Or Paste JSON Payload Manually"}</span>
+        </button>
+
+        {showPasteBox && (
+          <div className="mt-2.5 space-y-2 rounded-xl border border-border bg-muted/40 p-3">
+            <p className="text-[11px] text-muted-foreground">
+              Paste the extracted JSON data below if clipboard read is restricted:
+            </p>
+            <textarea
+              value={pastedJson}
+              onChange={(e) => setPastedJson(e.target.value)}
+              placeholder='{"userId":"...", "submissions":[...]}'
+              rows={4}
+              className="w-full rounded-lg border border-border bg-background p-2.5 font-mono text-[11px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <div className="flex items-center justify-end gap-2">
+              {pastedJson && (
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setPastedJson("")}
+                  className="text-xs h-7 px-2.5 text-muted-foreground"
+                >
+                  Clear
+                </Button>
+              )}
+              <Button
+                size="sm"
+                type="button"
+                onClick={() => void processSubmissionsPayload(pastedJson)}
+                disabled={!pastedJson.trim() || importing}
+                className="gap-1.5 bg-primary text-xs h-7 px-3 text-primary-foreground hover:bg-primary/90"
+              >
+                {importing ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
+                <span>Import Pasted JSON</span>
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {importStatus && (
+        <div
+          className={cn(
+            "rounded-xl border p-3.5 text-xs transition-all",
+            importStatus.startsWith("🎉")
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+              : importStatus.startsWith("⏳") || importStatus.startsWith("💾")
+              ? "border-primary/30 bg-primary/10 text-foreground flex items-center gap-2"
+              : "border-red-500/30 bg-red-500/10 text-red-300"
+          )}
+        >
+          {importStatus.startsWith("⏳") || importStatus.startsWith("💾") ? (
+            <>
+              <Loader2 className="size-4 animate-spin text-primary shrink-0" />
+              <span>{importStatus}</span>
+            </>
+          ) : importStatus.startsWith("❌") ? (
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="size-4 text-red-400 shrink-0 mt-0.5" />
+                <p className="font-medium text-red-200">{importStatus}</p>
+              </div>
+              {importStatus.includes("contains the script code") && (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-[11px] text-amber-200 leading-relaxed">
+                  <p className="font-semibold text-amber-300 mb-1">💡 Quick resolution:</p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    <li>On your LeetCode tab, look at the notification at top-right & click <b>[📋 Click to Copy Solves]</b>, then click <b>Import from Clipboard</b> here.</li>
+                    <li>Or click <b>[📥 Download JSON]</b> on LeetCode & click <b>Upload JSON File</b> right above!</li>
+                  </ol>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="font-medium">{importStatus}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -456,28 +704,17 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               </div>
 
               {/* Step 3: Sync from LeetCode */}
-              <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-3 text-xs text-muted-foreground leading-relaxed">
-                <p className="font-semibold text-foreground">Step 3: Click Sync & Complete Import</p>
+              <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-2 text-xs text-muted-foreground leading-relaxed">
+                <p className="font-semibold text-foreground">Step 3: Run Extension & Import</p>
                 <p>
                   1. Pin the extension in Chrome and click its icon.<br />
                   2. Paste your User ID & LeetCode username.<br />
                   3. Open any tab on <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-primary hover:underline">leetcode.com</a> and click <b>&ldquo;⚡ Sync Now to Hub&rdquo;</b>.<br />
-                  4. Return to this dialog and click <b>&ldquo;Import from Clipboard&rdquo;</b> below to instantly save your solutions into your Memory Hub!
+                  4. Return to this dialog and load your solutions below!
                 </p>
-
-                <Button
-                  size="sm"
-                  onClick={() => void handleImportFromClipboard()}
-                  disabled={importing}
-                  className="w-full gap-2 bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
-                >
-                  <Upload className="size-3.5" />
-                  <span>{importing ? "Importing Solutions…" : "Import Captured Solutions from Clipboard"}</span>
-                </Button>
-                {importStatus && (
-                  <p className="text-center text-xs font-medium text-foreground">{importStatus}</p>
-                )}
               </div>
+
+              {renderImportSection("Complete Import", "Once the extension captures your solutions on LeetCode, load them into your hub:")}
             </div>
           )}
 
@@ -556,22 +793,11 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
               <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-2 text-xs">
                 <p className="font-semibold text-foreground">What happens when you click it on LeetCode?</p>
                 <p className="text-muted-foreground leading-relaxed">
-                  Open any page on <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-primary hover:underline">leetcode.com</a> and click your new bookmark. A purple notification appears on LeetCode and automatically transfers your solutions. If direct network communication is blocked by browser restrictions, click <b>Import from Clipboard</b> below!
+                  Open any page on <a href="https://leetcode.com" target="_blank" rel="noreferrer" className="text-primary hover:underline">leetcode.com</a> and click your bookmark. A notification appears on LeetCode and gathers all your solutions.
                 </p>
-
-                <Button
-                  size="sm"
-                  onClick={() => void handleImportFromClipboard()}
-                  disabled={importing}
-                  className="mt-2 w-full gap-2 bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
-                >
-                  <Upload className="size-3.5" />
-                  <span>{importing ? "Importing Solutions…" : "Import from Clipboard (Fallback)"}</span>
-                </Button>
-                {importStatus && (
-                  <p className="mt-2 text-center text-xs font-medium text-foreground">{importStatus}</p>
-                )}
               </div>
+
+              {renderImportSection("Complete Import", "Once the bookmarklet runs on LeetCode, load your solutions into your hub:")}
             </div>
           )}
 
@@ -616,25 +842,7 @@ export function SyncCodeDialog({ open, onOpenChange, userId, leetcodeUsername }:
                 </div>
               </div>
 
-              <div className="space-y-3 rounded-2xl border border-border bg-card p-5 shadow-xs">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Step 2: Complete Import</span>
-                <p className="text-xs text-muted-foreground">
-                  Once the green toast appears on your LeetCode page, click below to load all problems into your hub:
-                </p>
-
-                <Button
-                  size="sm"
-                  onClick={() => void handleImportFromClipboard()}
-                  disabled={importing}
-                  className="w-full gap-2 bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
-                >
-                  <Upload className="size-3.5" />
-                  <span>{importing ? "Importing Solutions…" : "Import from Clipboard"}</span>
-                </Button>
-                {importStatus && (
-                  <p className="mt-2 text-center text-xs font-medium text-foreground">{importStatus}</p>
-                )}
-              </div>
+              {renderImportSection("Step 2: Complete Import", "Once the script finishes on LeetCode (you will see the notification in the top-right), load them into your hub:")}
             </div>
           )}
 

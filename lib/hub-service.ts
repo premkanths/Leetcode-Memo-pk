@@ -220,6 +220,36 @@ export async function upsertProblems(
   return { added, existing };
 }
 
+/** Upserts all resolved problems and recalculates the user's solved totals in Firestore. */
+export async function syncUserProblemsAndStats(
+  uid: string,
+  problems: LeetCodeProblem[],
+): Promise<UpsertResult> {
+  const result = await upsertProblems(uid, problems, "sync");
+  const allDocs = await getDocs(problemsCollection(uid));
+  let easy = 0;
+  let medium = 0;
+  let hard = 0;
+  for (const doc of allDocs.docs) {
+    const d = doc.data();
+    if (d.difficulty === "Easy") easy++;
+    else if (d.difficulty === "Medium") medium++;
+    else if (d.difficulty === "Hard") hard++;
+  }
+  await setDoc(
+    userDoc(uid),
+    {
+      totalSolved: allDocs.docs.length,
+      easySolved: easy,
+      mediumSolved: medium,
+      hardSolved: hard,
+      lastSyncedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+  return result;
+}
+
 /** Writes the profile totals and sync timestamp, then upserts the recent problems. */
 export async function applySyncSnapshot(
   uid: string,
