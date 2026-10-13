@@ -1,7 +1,7 @@
 "use client";
 
 import type { User } from "firebase/auth";
-import { LogOut, Menu, Moon, Pencil, Plus, RefreshCw, Search, Sun, Zap } from "lucide-react";
+import { Image as ImageIcon, LogOut, Menu, Moon, Pencil, Plus, RefreshCw, Search, Sun, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
@@ -55,7 +55,7 @@ export function DashboardHeader({
   onOpenSidebar,
   onOpenSearch,
 }: DashboardHeaderProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, cycleBackground, currentBackgroundOption } = useTheme();
   const effectiveName = displayName || user.displayName || user.email || "Learner";
 
   return (
@@ -112,6 +112,17 @@ export function DashboardHeader({
             <Avatar user={user} />
             <p className="text-[10px] text-muted-foreground">{lastSyncedLabel}</p>
           </button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={cycleBackground}
+            className="size-8.5 rounded-xl border-border"
+            title={`Wallpaper: ${currentBackgroundOption.name} (Click to switch)`}
+            aria-label="Switch background wallpaper"
+          >
+            <ImageIcon className="size-4 text-primary" />
+          </Button>
 
           <Button
             variant="outline"

@@ -10,6 +10,7 @@ import {
   Download,
   Flame,
   Folder,
+  Image as ImageIcon,
   Layers,
   LogOut,
   Moon,
@@ -90,7 +91,7 @@ export function TopicSidebar({
   userName,
   leetcodeUsername,
 }: TopicSidebarProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, cycleBackground, currentBackgroundOption } = useTheme();
   const [topicSearch, setTopicSearch] = useState("");
 
   const statusCounts = useMemo(() => {
@@ -153,6 +154,14 @@ export function TopicSidebar({
           className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <UserIcon className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={cycleBackground}
+          title={`Wallpaper: ${currentBackgroundOption.name} (Click to switch)`}
+          className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <ImageIcon className="size-4 text-primary" />
         </button>
         <button
           type="button"
@@ -476,11 +485,20 @@ export function TopicSidebar({
           <button
             type="button"
             onClick={toggleTheme}
-            className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-border bg-card/60 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-border bg-card/60 px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           >
             {theme === "dark" ? <Sun className="size-3.5 text-amber-400" /> : <Moon className="size-3.5 text-zinc-600" />}
             <span className="capitalize">{theme === "dark" ? "Light" : "Dark"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={cycleBackground}
+            className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-border bg-card/60 px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            title={`Wallpaper: ${currentBackgroundOption.name} (Click to switch)`}
+          >
+            <ImageIcon className="size-3.5 text-primary" />
+            <span className="truncate">{currentBackgroundOption.tagline}</span>
           </button>
           {onSignOut && (
             <button
@@ -489,11 +507,10 @@ export function TopicSidebar({
                 onSignOut();
                 onCloseMobile();
               }}
-              className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-border bg-card/60 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-500"
+              className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-border bg-card/60 text-muted-foreground transition-colors hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-500"
               title="Sign out of account"
             >
               <LogOut className="size-3.5" />
-              <span>Exit</span>
             </button>
           )}
         </div>

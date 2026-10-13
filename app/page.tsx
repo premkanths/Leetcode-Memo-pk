@@ -13,6 +13,7 @@ import {
   FolderTree,
   Heart,
   HelpCircle,
+  Image as ImageIcon,
   Layers,
   Mail,
   Moon,
@@ -85,7 +86,7 @@ const PRODUCT_HIGHLIGHTS = [
 
 export default function HomePage() {
   const { user, loading, configured, authError, signInWithGithub, signInWithGoogle } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, cycleBackground, currentBackgroundOption } = useTheme();
   const router = useRouter();
   const [signingInProvider, setSigningInProvider] = useState<"github" | "google" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -138,6 +139,18 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            {/* Wallpaper Toggle Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={cycleBackground}
+              className="size-8.5 rounded-xl border-border bg-card text-foreground"
+              title={`Wallpaper: ${currentBackgroundOption.name} (Click to switch)`}
+              aria-label="Switch background wallpaper"
+            >
+              <ImageIcon className="size-4 text-primary" />
+            </Button>
+
             {/* Theme Toggle Button */}
             <Button
               variant="outline"

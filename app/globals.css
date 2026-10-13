@@ -112,31 +112,67 @@ html.dark {
   }
 }
 
+:root,
+html[data-bg="classic"] {
+  --app-bg-image: url("/backgrounds/dashboard-bg.jpg");
+  --landing-bg-image: url("/backgrounds/landing-hero-bg.jpg");
+}
+
+html[data-bg="codelab"] {
+  --app-bg-image: url("/backgrounds/bg-code-lab.jpg");
+  --landing-bg-image: url("/backgrounds/bg-code-lab.jpg");
+}
+
+html[data-bg="obsidian"] {
+  --app-bg-image: url("/backgrounds/bg-obsidian.jpg");
+  --landing-bg-image: url("/backgrounds/bg-obsidian.jpg");
+}
+
 @layer components {
   .app-backdrop {
     background-color: var(--background);
     background-image:
-      linear-gradient(180deg, color-mix(in srgb, var(--background) 72%, transparent) 0%, color-mix(in srgb, var(--background) 88%, transparent) 100%),
-      url("/backgrounds/dashboard-bg.jpg");
+      linear-gradient(180deg, color-mix(in srgb, var(--background) 72%, transparent) 0%, color-mix(in srgb, var(--background) 90%, transparent) 100%),
+      var(--app-bg-image);
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
+    transition: background-image 0.25s ease-in-out;
+  }
+
+  html.dark .app-backdrop {
+    background-image:
+      linear-gradient(180deg, rgba(16, 14, 12, 0.65) 0%, rgba(16, 14, 12, 0.9) 100%),
+      var(--app-bg-image);
+  }
+
+  html.dark[data-bg="codelab"] .app-backdrop {
+    background-image:
+      linear-gradient(180deg, rgba(16, 14, 12, 0.45) 0%, rgba(16, 14, 12, 0.82) 100%),
+      var(--app-bg-image);
+  }
+
+  html.dark[data-bg="obsidian"] .app-backdrop {
+    background-image:
+      linear-gradient(180deg, rgba(16, 14, 12, 0.52) 0%, rgba(16, 14, 12, 0.85) 100%),
+      var(--app-bg-image);
   }
 
   .landing-backdrop {
     background-color: var(--background);
     background-image:
       linear-gradient(180deg, color-mix(in srgb, var(--background) 42%, transparent) 0%, color-mix(in srgb, var(--background) 88%, #1a120c) 100%),
-      url("/backgrounds/landing-hero-bg.jpg");
+      var(--landing-bg-image);
     background-size: cover;
     background-position: center top;
     background-attachment: fixed;
+    transition: background-image 0.25s ease-in-out;
   }
 
   html.dark .landing-backdrop {
     background-image:
       linear-gradient(180deg, rgba(16, 14, 12, 0.55) 0%, rgba(16, 14, 12, 0.88) 100%),
-      url("/backgrounds/landing-hero-bg.jpg");
+      var(--landing-bg-image);
   }
 
   .glass-panel {

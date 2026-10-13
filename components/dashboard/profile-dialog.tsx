@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ExternalLink,
   Globe,
+  Image as ImageIcon,
   Link2,
   Moon,
   Sun,
@@ -15,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useTheme } from "@/components/theme-provider";
+import { BACKGROUND_OPTIONS, useTheme } from "@/components/theme-provider";
 import { isValidLeetCodeUsername } from "@/lib/leetcode-links";
 import { cn, getErrorMessage } from "@/lib/utils";
 import type { UserProfile } from "@/lib/types";
@@ -45,7 +46,7 @@ function ProfileFormContent({
   onSyncLeetcode?: (username: string) => Promise<void>;
   onClose: () => void;
 }) {
-  const { theme, toggleTheme, setTheme } = useTheme();
+  const { theme, toggleTheme, setTheme, background, setBackground, currentBackgroundOption } = useTheme();
   const [displayName, setDisplayName] = useState(() => profile?.displayName || defaultName || "");
   const [leetcodeUsername, setLeetcodeUsername] = useState(() => profile?.leetcodeUsername || defaultLeetcode || "");
   const [preferredLanguage, setPreferredLanguage] = useState(() => profile?.preferredLanguage || "java");
@@ -188,6 +189,62 @@ function ProfileFormContent({
                     </p>
                   </div>
                 </button>
+              </div>
+
+              {/* Background Wallpaper Atmosphere */}
+              <div className="mt-6 space-y-3 border-t border-border/80 pt-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">Background Atmosphere</h4>
+                    <p className="text-xs text-muted-foreground">Choose a focused ambient backdrop for your study session.</p>
+                  </div>
+                  <span className="rounded-md border border-border bg-card px-2.5 py-0.5 text-[11px] font-medium text-foreground">
+                    {currentBackgroundOption.name}
+                  </span>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {BACKGROUND_OPTIONS.map((opt) => {
+                    const isSelected = background === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setBackground(opt.id)}
+                        className={cn(
+                          "group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border text-left transition-all",
+                          isSelected
+                            ? "border-primary bg-primary/10 ring-2 ring-primary/40 shadow-sm"
+                            : "border-border bg-card/60 hover:border-foreground/30",
+                        )}
+                      >
+                        <div className="relative h-20 w-full overflow-hidden bg-muted">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={opt.image}
+                            alt={opt.name}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                          <span className="absolute bottom-1.5 left-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-xs">
+                            {opt.tagline}
+                          </span>
+                          {isSelected && (
+                            <span className="absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+                              <Check className="size-3 stroke-[3]" />
+                            </span>
+                          )}
+                        </div>
+                        <div className="p-2.5">
+                          <p className="text-xs font-semibold text-foreground">{opt.name}</p>
+                          <p className="mt-0.5 line-clamp-2 text-[10px] leading-tight text-muted-foreground">
+                            {opt.description}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
