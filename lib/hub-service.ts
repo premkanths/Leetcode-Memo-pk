@@ -101,6 +101,7 @@ export function parseSolvedProblem(id: string, data: DocumentData): SolvedProble
     lastRevisedAt: toDate(data.lastRevisedAt),
     solvedAt: toDate(data.solvedAt),
     source: data.source === "manual" ? "manual" : "sync",
+    pinned: data.pinned === true,
   };
 }
 
@@ -205,6 +206,7 @@ export async function upsertProblems(
         ...metadata,
         memoryStatus: DEFAULT_MEMORY_STATUS,
         notes: "",
+        pinned: false,
         solvedAt,
         lastRevisedAt: solvedAt ?? serverTimestamp(),
         source,
@@ -263,6 +265,10 @@ export async function saveDailyRecommendations(
     model: response.model,
     generatedAt: serverTimestamp(),
   });
+}
+
+export async function setProblemPinned(uid: string, titleSlug: string, pinned: boolean): Promise<void> {
+  await updateDoc(problemDoc(uid, titleSlug), { pinned });
 }
 
 export async function saveProblemCode(

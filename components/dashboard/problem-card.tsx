@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Maximize2,
   Pencil,
+  Pin,
   RotateCw,
   Save,
   Sparkles,
@@ -79,6 +80,7 @@ interface ProblemCardProps {
   onSaveNotes: (titleSlug: string, notes: string) => Promise<void>;
   onSaveCode?: (titleSlug: string, code: string, lang?: string) => Promise<void>;
   onOpenWorkspace?: (problem: SolvedProblem) => void;
+  onTogglePin?: (titleSlug: string, pinned: boolean) => Promise<void>;
 }
 
 export function ProblemCard({
@@ -87,6 +89,7 @@ export function ProblemCard({
   onSaveNotes,
   onSaveCode,
   onOpenWorkspace,
+  onTogglePin,
 }: ProblemCardProps) {
   const [activeTab, setActiveTab] = useState<"none" | "notes" | "code">("none");
   const [notesTab, setNotesTab] = useState<"write" | "preview">("write");
@@ -200,6 +203,18 @@ export function ProblemCard({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
+          {onTogglePin && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => void onTogglePin(problem.titleSlug, !problem.pinned)}
+              className="size-7"
+              title={problem.pinned ? "Unpin problem" : "Pin problem"}
+              aria-label={problem.pinned ? "Unpin problem" : "Pin problem"}
+            >
+              <Pin className={cn("size-3.5", problem.pinned && "fill-current text-primary")} />
+            </Button>
+          )}
           <Badge variant={DIFFICULTY_VARIANT[problem.difficulty]} className="shrink-0">
             {problem.difficulty}
           </Badge>

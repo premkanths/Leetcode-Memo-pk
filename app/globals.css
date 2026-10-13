@@ -3,57 +3,55 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Design tokens for LeetCode Memory Hub (Quiet Study Notebook) */
+/* Warm study notebook in light mode, amber code-lab in dark mode */
 :root {
-  --background: #faf9f6;
-  --foreground: #2d2b2a;
-  --card: #ffffff;
-  --card-foreground: #2d2b2a;
-  --muted: #f3f1ec;
-  --muted-foreground: #787571;
-  --border: #e7e5e0;
-  --input: #e7e5e0;
-  --ring: #557a66;
-  --primary: #4f6b5f;
-  --primary-foreground: #ffffff;
+  --background: #f4efe6;
+  --foreground: #241c16;
+  --card: rgba(255, 251, 245, 0.86);
+  --card-foreground: #241c16;
+  --muted: #ebe3d6;
+  --muted-foreground: #6f6458;
+  --border: #ddd2c3;
+  --input: #ddd2c3;
+  --ring: #c45c26;
+  --primary: #c45c26;
+  --primary-foreground: #fffaf4;
   --destructive: #b94a48;
 
-  /* Low-saturation status tokens */
-  --status-mastered-bg: #eaf3ed;
-  --status-mastered-fg: #29573c;
-  --status-mastered-border: #cde4d5;
-  --status-review-bg: #fdf6e7;
-  --status-review-fg: #855318;
-  --status-review-border: #f6e3ba;
-  --status-confused-bg: #fcf0f0;
-  --status-confused-fg: #943939;
-  --status-confused-border: #f4d3d3;
+  --status-mastered-bg: #e7f3ea;
+  --status-mastered-fg: #24573a;
+  --status-mastered-border: #c5e0cd;
+  --status-review-bg: #fdf3e0;
+  --status-review-fg: #8a4b12;
+  --status-review-border: #f0d7a8;
+  --status-confused-bg: #fbeeee;
+  --status-confused-fg: #933636;
+  --status-confused-border: #f0cccc;
 }
 
 html.dark {
-  --background: #181716;
-  --foreground: #eceae6;
-  --card: #201f1e;
-  --card-foreground: #eceae6;
-  --muted: #282725;
-  --muted-foreground: #9e9a94;
-  --border: #33312e;
-  --input: #33312e;
-  --ring: #6b947e;
-  --primary: #6b947e;
-  --primary-foreground: #141312;
-  --destructive: #df6e6c;
+  --background: #100e0c;
+  --foreground: #f4ece3;
+  --card: rgba(28, 24, 20, 0.82);
+  --card-foreground: #f4ece3;
+  --muted: #26211c;
+  --muted-foreground: #b3a496;
+  --border: #3a332c;
+  --input: #3a332c;
+  --ring: #f0a14a;
+  --primary: #f0a14a;
+  --primary-foreground: #1a120c;
+  --destructive: #e07270;
 
-  /* Low-saturation dark status tokens */
-  --status-mastered-bg: #1e2c23;
-  --status-mastered-fg: #98deb0;
-  --status-mastered-border: #2a4233;
-  --status-review-bg: #2d261a;
-  --status-review-fg: #f4cf80;
-  --status-review-border: #443721;
-  --status-confused-bg: #2d1c1d;
-  --status-confused-fg: #f19a9a;
-  --status-confused-border: #442628;
+  --status-mastered-bg: #1c2d22;
+  --status-mastered-fg: #9ee0b4;
+  --status-mastered-border: #2c4635;
+  --status-review-bg: #322616;
+  --status-review-fg: #f6d087;
+  --status-review-border: #4a3820;
+  --status-confused-bg: #321c1d;
+  --status-confused-fg: #f3a0a0;
+  --status-confused-border: #4a2829;
 }
 
 @theme inline {
@@ -69,8 +67,17 @@ html.dark {
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-destructive: var(--destructive);
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, Menlo, Consolas, monospace;
+  --color-status-mastered-bg: var(--status-mastered-bg);
+  --color-status-mastered-text: var(--status-mastered-fg);
+  --color-status-mastered-border: var(--status-mastered-border);
+  --color-status-review-bg: var(--status-review-bg);
+  --color-status-review-text: var(--status-review-fg);
+  --color-status-review-border: var(--status-review-border);
+  --color-status-confused-bg: var(--status-confused-bg);
+  --color-status-confused-text: var(--status-confused-fg);
+  --color-status-confused-border: var(--status-confused-border);
+  --font-sans: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", "Fira Code", ui-monospace, Menlo, Consolas, monospace;
 }
 
 @layer base {
@@ -83,13 +90,12 @@ html.dark {
   }
 
   body {
-    @apply bg-background text-foreground antialiased selection:bg-emerald-500/20 selection:text-foreground transition-colors duration-200;
+    @apply bg-background text-foreground antialiased selection:bg-amber-500/25 selection:text-foreground transition-colors duration-200;
     min-height: 100vh;
     font-size: 15px;
     line-height: 1.6;
   }
 
-  /* Quiet scrollbars */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -98,19 +104,61 @@ html.dark {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(140, 135, 130, 0.25);
+    background: rgba(140, 120, 90, 0.35);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(140, 135, 130, 0.45);
+    background: rgba(140, 120, 90, 0.55);
   }
 }
 
-/* Paper utilities */
-.paper-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+@layer components {
+  .app-backdrop {
+    background-color: var(--background);
+    background-image:
+      linear-gradient(180deg, color-mix(in srgb, var(--background) 72%, transparent) 0%, color-mix(in srgb, var(--background) 88%, transparent) 100%),
+      url("/backgrounds/dashboard-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
+  .landing-backdrop {
+    background-color: var(--background);
+    background-image:
+      linear-gradient(180deg, color-mix(in srgb, var(--background) 42%, transparent) 0%, color-mix(in srgb, var(--background) 88%, #1a120c) 100%),
+      url("/backgrounds/landing-hero-bg.jpg");
+    background-size: cover;
+    background-position: center top;
+    background-attachment: fixed;
+  }
+
+  html.dark .landing-backdrop {
+    background-image:
+      linear-gradient(180deg, rgba(16, 14, 12, 0.55) 0%, rgba(16, 14, 12, 0.88) 100%),
+      url("/backgrounds/landing-hero-bg.jpg");
+  }
+
+  .glass-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 40px rgba(36, 22, 10, 0.08);
+    backdrop-filter: blur(16px);
+  }
+
+  html.dark .glass-panel {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(240, 161, 74, 0.08);
+  }
+
+  .paper-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  html.dark .paper-card {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(240, 161, 74, 0.06);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

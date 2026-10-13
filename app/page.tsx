@@ -58,37 +58,28 @@ const WHY_USE_REASONS = [
   },
 ];
 
-const USER_STATISTICS = [
-  { value: "12,400+", label: "Active Software Engineers", hint: "across FAANG & top tech" },
-  { value: "185,000+", label: "Problems Revised & Tracked", hint: "saved with pattern notes" },
-  { value: "98.4%", label: "Positive Recall Rating", hint: "based on 2,800+ user reviews" },
-  { value: "4.9 / 5.0", label: "User Satisfaction Score", hint: "community rating" },
+const CORE_PILLARS = [
+  { value: "Instant Sync", label: "Automated Tracking", hint: "Fetch solves via public LeetCode handle" },
+  { value: "Spaced Recall", label: "Mastery Folders", hint: "Scheduled review for confused & weak patterns" },
+  { value: "Daily Coach", label: "Targeted Drills", hint: "3 AI recommendations based on weak spots" },
+  { value: "Markdown Export", label: "Interview Cheatsheet", hint: "Download your notes offline anytime" },
 ];
 
-const REVIEWS = [
+const PRODUCT_HIGHLIGHTS = [
   {
-    name: "Arjun Verma",
-    role: "Incoming SDE II at Amazon",
-    rating: 5,
-    avatar: "AV",
-    review:
-      "I used to solve 5 LeetCode problems every weekend and completely forget them by the next month. Organizing them by Mastered / Needs Review folders and using Gemini on-demand changed my prep entirely.",
+    title: "Keyboard-Driven Search (⌘K)",
+    desc: "Jump straight to any problem, topic, or trick note in milliseconds with full keyboard navigation.",
+    tag: "Fast Navigation",
   },
   {
-    name: "Sophia Chen",
-    role: "Software Engineer at Stripe",
-    rating: 5,
-    avatar: "SC",
-    review:
-      "The full screen AI recommendations and the ability to ask Gemini questions when I actually need help without feeling pressured is brilliant. 10/10 recommend to anyone interviewing.",
+    title: "Pinned Problem Shortcuts",
+    desc: "Pin tricky patterns and high-frequency interview questions directly to your sidebar for instant access.",
+    tag: "Favorites",
   },
   {
-    name: "Rahul Nair",
-    role: "Frontend Engineer at Microsoft",
-    rating: 5,
-    avatar: "RN",
-    review:
-      "The cleanest interface I've used. Syncs your real LeetCode solves in one click and lets you keep your personal code snippet with concise trick notes. Big thanks to Premkanth KS!",
+    title: "Dedicated Code Workspace",
+    desc: "Store your personal syntax-highlighted solutions alongside pattern intuition notes and Gemini tutoring.",
+    tag: "Retention",
   },
 ];
 
@@ -133,9 +124,8 @@ export default function HomePage() {
   const activeError = error || authError;
 
   return (
-    <div className="relative min-h-screen">
-      {/* Navigation Bar */}
-      <nav className="sticky top-0 z-40 border-b border-border bg-card/85 backdrop-blur-md transition-colors">
+    <div className="landing-backdrop relative min-h-screen">
+      <nav className="sticky top-0 z-40 border-b border-border/80 bg-card/70 backdrop-blur-md transition-colors">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -200,7 +190,16 @@ export default function HomePage() {
           </Card>
         )}
 
-        {/* Calm Hero Section */}
+        <div className="mb-16 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {CORE_PILLARS.map((item) => (
+            <div key={item.label} className="glass-panel rounded-2xl px-4 py-3">
+              <p className="text-base font-semibold text-foreground sm:text-lg">{item.value}</p>
+              <p className="text-[11px] font-medium text-foreground/80">{item.label}</p>
+              <p className="text-[10px] text-muted-foreground">{item.hint}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
@@ -263,7 +262,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            <Card className="p-6 space-y-3">
+            <Card className="space-y-3 bg-card/85 p-6 backdrop-blur-md">
               <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Code2 className="size-5" />
               </span>
@@ -273,7 +272,7 @@ export default function HomePage() {
               </p>
             </Card>
 
-            <Card className="p-6 space-y-3">
+            <Card className="space-y-3 bg-card/85 p-6 backdrop-blur-md">
               <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <BookMarked className="size-5" />
               </span>
@@ -283,7 +282,7 @@ export default function HomePage() {
               </p>
             </Card>
 
-            <Card className="p-6 space-y-3">
+            <Card className="space-y-3 bg-card/85 p-6 backdrop-blur-md">
               <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <RotateCw className="size-5" />
               </span>
@@ -296,7 +295,7 @@ export default function HomePage() {
         </section>
 
         {/* Why this helps section (Warm & human) */}
-        <section className="mt-24 rounded-2xl border border-border bg-card p-8 sm:p-12">
+        <section className="mt-24 rounded-2xl border border-border bg-card/85 p-8 shadow-lg backdrop-blur-md sm:p-12">
           <div className="grid items-center gap-8 md:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-primary">Why this helps</p>
@@ -322,25 +321,23 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Community & Reviews */}
+        {/* Built for interview readiness */}
         <section className="mt-24 space-y-8">
-          <div className="text-center max-w-xl mx-auto space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Learner feedback</p>
-            <h2 className="text-2xl font-semibold text-foreground">Loved by engineers preparing thoughtfully</h2>
+          <div className="mx-auto max-w-xl space-y-2 text-center">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Everything you need</p>
+            <h2 className="text-2xl font-semibold text-foreground">Built for thoughtful algorithmic mastery</h2>
+            <p className="text-sm text-muted-foreground">A clean, noise-free workspace to build enduring interview muscle memory.</p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            {REVIEWS.map((rev) => (
-              <Card key={rev.name} className="flex flex-col justify-between p-6">
-                <p className="text-xs leading-relaxed text-muted-foreground italic">&ldquo;{rev.review}&rdquo;</p>
-                <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
-                  <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-                    {rev.avatar}
+            {PRODUCT_HIGHLIGHTS.map((item) => (
+              <Card key={item.title} className="flex flex-col justify-between bg-card/85 p-6 backdrop-blur-md">
+                <div className="space-y-2.5">
+                  <span className="inline-block rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                    {item.tag}
                   </span>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">{rev.name}</p>
-                    <p className="text-[11px] text-muted-foreground">{rev.role}</p>
-                  </div>
+                  <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
+                  <p className="text-xs leading-relaxed text-muted-foreground">{item.desc}</p>
                 </div>
               </Card>
             ))}
@@ -372,7 +369,7 @@ export default function HomePage() {
 /** Static illustration of the gentle dashboard preview */
 function PreviewCard() {
   return (
-    <Card className="space-y-4 p-6 border-border bg-card shadow-sm">
+    <Card className="space-y-4 border-border bg-card/90 p-6 shadow-lg backdrop-blur-md">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-foreground">Two Sum</p>

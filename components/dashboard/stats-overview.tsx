@@ -1,4 +1,4 @@
-import { Brain } from "lucide-react";
+import { Brain, CalendarClock, Flame } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import type { SolvedProblem, UserProfile } from "@/lib/types";
 
@@ -6,6 +6,8 @@ interface StatsOverviewProps {
   profile: UserProfile | null;
   problems: SolvedProblem[];
   loading: boolean;
+  streak: number;
+  dueCount: number;
 }
 
 function pickCount(fromProfile: number | undefined, fallback: number): number {
@@ -16,7 +18,7 @@ function percentage(part: number, whole: number): number {
   return whole > 0 ? Math.round((part / whole) * 100) : 0;
 }
 
-export function StatsOverview({ profile, problems, loading }: StatsOverviewProps) {
+export function StatsOverview({ profile, problems, loading, streak, dueCount }: StatsOverviewProps) {
   const total = pickCount(profile?.totalSolved, problems.length);
   const easy = pickCount(profile?.easySolved, problems.filter((p) => p.difficulty === "Easy").length);
   const medium = pickCount(profile?.mediumSolved, problems.filter((p) => p.difficulty === "Medium").length);
@@ -86,7 +88,13 @@ export function StatsOverview({ profile, problems, loading }: StatsOverviewProps
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <span className="inline-flex items-center gap-1.5 text-foreground">
+              <Flame className="size-3.5 text-primary" /> {streak} day streak
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-foreground">
+              <CalendarClock className="size-3.5 text-primary" /> {dueCount} due
+            </span>
             <span className="inline-flex items-center gap-1.5 text-xs text-[var(--status-mastered-fg)]">
               <span className="size-2 rounded-full bg-emerald-500" /> {mastered} Mastered
             </span>

@@ -20,7 +20,7 @@ export default function DashboardPage() {
 
   if (loading || !user) {
     return (
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-10 sm:px-6 lg:px-8" aria-busy="true" aria-label="Loading dashboard">
+      <div className="app-backdrop mx-auto max-w-7xl space-y-6 px-4 py-10 sm:px-6 lg:px-8" aria-busy="true" aria-label="Loading dashboard">
         <div className="flex items-center justify-between">
           <Skeleton className="h-10 w-56" />
           <Skeleton className="h-10 w-40" />

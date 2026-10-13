@@ -19,6 +19,7 @@ interface ProblemGridProps {
   onSaveNotes: (titleSlug: string, notes: string) => Promise<void>;
   onSaveCode?: (titleSlug: string, code: string, lang?: string) => Promise<void>;
   onOpenWorkspace?: (problem: SolvedProblem) => void;
+  onTogglePin?: (titleSlug: string, pinned: boolean) => Promise<void>;
 }
 
 function GridSkeleton() {
@@ -71,6 +72,7 @@ export function ProblemGrid({
   onSaveNotes,
   onSaveCode,
   onOpenWorkspace,
+  onTogglePin,
 }: ProblemGridProps) {
   const folders = useMemo(() => (view === "folders" ? groupByTopic(problems) : []), [problems, view]);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -86,6 +88,7 @@ export function ProblemGrid({
         problems={problems}
         onStatusChange={onStatusChange}
         onOpenWorkspace={onOpenWorkspace}
+        onTogglePin={onTogglePin}
       />
     );
   }
@@ -101,6 +104,7 @@ export function ProblemGrid({
             onSaveNotes={onSaveNotes}
             onSaveCode={onSaveCode}
             onOpenWorkspace={onOpenWorkspace}
+            onTogglePin={onTogglePin}
           />
         ))}
       </div>
@@ -153,6 +157,7 @@ export function ProblemGrid({
                     onSaveNotes={onSaveNotes}
                     onSaveCode={onSaveCode}
                     onOpenWorkspace={onOpenWorkspace}
+                    onTogglePin={onTogglePin}
                   />
                 ))}
               </div>

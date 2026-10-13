@@ -40,6 +40,7 @@ export interface SolvedProblem {
   /** When the problem was solved on LeetCode (null for manually added problems). */
   solvedAt: Date | null;
   source: ProblemSource;
+  pinned: boolean;
 }
 
 /** `users/{uid}` */

@@ -20,6 +20,7 @@ const make = (slug: string, extra: Partial<SolvedProblem> = {}): SolvedProblem =
   lastRevisedAt: null,
   solvedAt: null,
   source: "sync",
+  pinned: false,
   ...extra,
 });
 

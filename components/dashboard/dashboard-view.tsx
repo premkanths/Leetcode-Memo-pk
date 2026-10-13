@@ -7,8 +7,16 @@ import { useAuth, getGithubHandle } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { ApiRequestError } from "@/lib/api-client";
 import { addProblemByInput, syncLeetCodeProgress, type SyncOutcome } from "@/lib/hub-actions";
-import { saveNotes, saveProblemCode, setLeetCodeUsername, setMemoryStatus, updateUserProfile } from "@/lib/hub-service";
+import { saveNotes, saveProblemCode, setMemoryStatus, setProblemPinned, updateUserProfile } from "@/lib/hub-service";
 import { collectTopics, DEFAULT_FILTERS, filterProblems, type ProblemFilters, type ViewMode } from "@/lib/problem-filters";
+import {
+  downloadNotesMarkdown,
+  getDueProblems,
+  getPinnedProblems,
+  getRevisionStreak,
+  getWeakTopics,
+  type HubScope,
+} from "@/lib/hub-insights";
 import { getLocalDateKey } from "@/lib/recommendations";
 import { cn, formatRelativeTime, getErrorMessage } from "@/lib/utils";
 import type { LeetCodeProblem, MemoryStatus } from "@/lib/types";
@@ -25,6 +33,8 @@ import { TopicSidebar } from "./topic-sidebar";
 import { DailyCoachDialog } from "./daily-coach-dialog";
 import { ProfileDialog } from "./profile-dialog";
 import { DeveloperInfoCard } from "./developer-info-card";
+import { CommandSearch } from "./command-search";
+import { TodayPlan } from "./today-plan";
 
 const AUTO_SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const NOTICE_TIMEOUT_MS = 6_000;
@@ -85,7 +95,10 @@ export function DashboardView({ user }: { user: User }) {
 
   const [filters, setFilters] = useState<ProblemFilters>(DEFAULT_FILTERS);
   const [view, setView] = useState<ViewMode>("files");
+  const [hubScope, setHubScope] = useState<HubScope>("all");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -106,7 +119,12 @@ export function DashboardView({ user }: { user: User }) {
   const coach = useDailyCoach(user, problems, problemsReady, dateKey);
 
   const topics = useMemo(() => collectTopics(problems), [problems]);
-  const visibleProblems = useMemo(() => filterProblems(problems, filters), [problems, filters]);
+  const dueProblems = useMemo(() => getDueProblems(problems), [problems]);
+  const pinnedProblems = useMemo(() => getPinnedProblems(problems), [problems]);
+  const streak = useMemo(() => getRevisionStreak(problems), [problems]);
+  const weakTopics = useMemo(() => getWeakTopics(problems), [problems]);
+  const scopedProblems = hubScope === "due" ? dueProblems : hubScope === "pinned" ? pinnedProblems : problems;
+  const visibleProblems = useMemo(() => filterProblems(scopedProblems, filters), [scopedProblems, filters]);
 
   // Auto-dismiss success notices so the banner never gets stuck on screen.
   useEffect(() => {
@@ -183,27 +201,87 @@ export function DashboardView({ user }: { user: User }) {
     [uid],
   );
 
+  const handleTogglePin = useCallback(
+    (titleSlug: string, pinned: boolean) => setProblemPinned(uid, titleSlug, pinned),
+    [uid],
+  );
+
   const liveError = profileState.error ?? problemsState.error;
   const lastSyncedLabel = profile?.lastSyncedAt
     ? `Synced ${formatRelativeTime(profile.lastSyncedAt)}`
     : "Not synced yet";
 
-  return (
-    <div className="relative min-h-screen bg-background">
-      <DashboardHeader
-        user={user}
-        displayName={profile?.displayName}
-        leetcodeUsername={leetcodeUsername}
-        lastSyncedLabel={lastSyncedLabel}
-        syncing={syncing}
-        onSync={() => void runSync(leetcodeUsername)}
-        onAddProblem={() => setAddOpen(true)}
-        onOpenSyncCode={() => setSyncCodeOpen(true)}
-        onEditUsername={() => setProfileOpen(true)}
-        onSignOut={() => void signOut()}
-      />
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
-      <main className="mx-auto max-w-[1720px] px-3 py-6 sm:px-6 lg:px-8">
+  const heading =
+    hubScope === "due"
+      ? "Due for review"
+      : hubScope === "pinned"
+        ? "Pinned problems"
+        : filters.topic === "all"
+          ? "All problems"
+          : `Folder: ${filters.topic}`;
+
+  return (
+    <div className="app-backdrop relative min-h-dvh">
+      <div className="flex min-h-dvh">
+        <TopicSidebar
+          topics={topics}
+          selectedTopic={filters.topic}
+          onSelectTopic={(topic) => setFilters((prev) => ({ ...prev, topic }))}
+          selectedStatus={filters.status}
+          onSelectStatus={(status) => setFilters((prev) => ({ ...prev, status }))}
+          hubScope={hubScope}
+          onSelectScope={setHubScope}
+          problems={problems}
+          totalCount={problems.length}
+          dueCount={dueProblems.length}
+          pinnedCount={pinnedProblems.length}
+          streak={streak}
+          weakTopics={weakTopics}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          mobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
+          onOpenCoach={() => setCoachOpen(true)}
+          onOpenProfile={() => setProfileOpen(true)}
+          onAddProblem={() => setAddOpen(true)}
+          onExportNotes={() => downloadNotesMarkdown(problems)}
+          onSync={() => void runSync(leetcodeUsername)}
+          syncing={syncing}
+          onSignOut={() => void signOut()}
+          pinnedProblems={pinnedProblems}
+          onOpenWorkspace={(p) => setWorkspaceSlug(p.titleSlug)}
+          userName={profile?.displayName || user.displayName || user.email || ""}
+          leetcodeUsername={leetcodeUsername}
+        />
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <DashboardHeader
+            user={user}
+            displayName={profile?.displayName}
+            leetcodeUsername={leetcodeUsername}
+            lastSyncedLabel={lastSyncedLabel}
+            syncing={syncing}
+            onSync={() => void runSync(leetcodeUsername)}
+            onAddProblem={() => setAddOpen(true)}
+            onOpenSyncCode={() => setSyncCodeOpen(true)}
+            onEditUsername={() => setProfileOpen(true)}
+            onSignOut={() => void signOut()}
+            onOpenSidebar={() => setMobileSidebarOpen(true)}
+            onOpenSearch={() => setSearchOpen(true)}
+          />
+
+          <main className="mx-auto w-full max-w-[1400px] flex-1 px-3 py-6 sm:px-6 lg:px-8">
         {notice && <NoticeBanner notice={notice} onDismiss={() => setNotice(null)} />}
 
         {liveError && (
@@ -213,34 +291,29 @@ export function DashboardView({ user }: { user: User }) {
           </div>
         )}
 
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          {/* Left Sidebar: Topic / Folders Navigation & AI Coach Trigger */}
-          <TopicSidebar
-            topics={topics}
-            selectedTopic={filters.topic}
-            onSelectTopic={(topic) => setFilters((prev) => ({ ...prev, topic }))}
-            selectedStatus={filters.status}
-            onSelectStatus={(status) => setFilters((prev) => ({ ...prev, status }))}
-            problems={problems}
-            totalCount={problems.length}
-            collapsed={sidebarCollapsed}
-            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-            onOpenCoach={() => setCoachOpen(true)}
-            onOpenProfile={() => setProfileOpen(true)}
-            userName={profile?.displayName || user.displayName || user.email || ""}
-            leetcodeUsername={leetcodeUsername}
-          />
+            <div className="space-y-6">
+            <StatsOverview
+              profile={profile}
+              problems={problems}
+              loading={problemsState.loading}
+              streak={streak}
+              dueCount={dueProblems.length}
+            />
 
-          {/* Central Problem Hub Content (Spacious & Clean) */}
-          <div className="min-w-0 flex-1 space-y-6">
-            <StatsOverview profile={profile} problems={problems} loading={problemsState.loading} />
+            <TodayPlan
+              recommendations={coach.recommendations}
+              loading={coach.loading}
+              generating={coach.generating}
+              error={coach.error}
+              hasProblems={problems.length > 0}
+              onRegenerate={() => void coach.regenerate()}
+              onOpenFull={() => setCoachOpen(true)}
+            />
 
             <section aria-label="Solved problems" className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-semibold tracking-tight text-foreground">
-                    {filters.topic === "all" ? "All Problems" : `Folder: ${filters.topic}`}
-                  </h2>
+                  <h2 className="text-xl font-semibold tracking-tight text-foreground">{heading}</h2>
                   <p className="text-xs text-muted-foreground">
                     Showing {visibleProblems.length} problem{visibleProblems.length === 1 ? "" : "s"}
                     {filters.status !== "all" && ` · Filtered by ${filters.status}`}
@@ -263,15 +336,18 @@ export function DashboardView({ user }: { user: User }) {
                 view={view}
                 totalCount={problems.length}
                 loading={problemsState.loading}
-                onClearFilters={() => setFilters(DEFAULT_FILTERS)}
+                onClearFilters={() => {
+                  setFilters(DEFAULT_FILTERS);
+                  setHubScope("all");
+                }}
                 onStatusChange={handleStatusChange}
                 onSaveNotes={handleSaveNotes}
                 onSaveCode={handleSaveCode}
+                onTogglePin={handleTogglePin}
                 onOpenWorkspace={(p) => setWorkspaceSlug(p.titleSlug)}
               />
             </section>
 
-            {/* Bottom Developer / Learner Info Card */}
             <div className="pt-2">
               <DeveloperInfoCard
                 user={user}
@@ -282,9 +358,17 @@ export function DashboardView({ user }: { user: User }) {
                 onOpenSyncCode={() => setSyncCodeOpen(true)}
               />
             </div>
-          </div>
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
+
+      <CommandSearch
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        problems={problems}
+        onSelect={(problem) => setWorkspaceSlug(problem.titleSlug)}
+      />
 
       <ProblemWorkspaceDialog
         open={workspaceProblem !== null}

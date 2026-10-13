@@ -1,7 +1,7 @@
 "use client";
 
 import type { User } from "firebase/auth";
-import { BookMarked, LogOut, Moon, Pencil, Plus, RefreshCw, Sun, Zap } from "lucide-react";
+import { LogOut, Menu, Moon, Pencil, Plus, RefreshCw, Search, Sun, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,8 @@ interface DashboardHeaderProps {
   onOpenSyncCode: () => void;
   onEditUsername: () => void;
   onSignOut: () => void;
+  onOpenSidebar: () => void;
+  onOpenSearch: () => void;
 }
 
 function Avatar({ user }: { user: User }) {
@@ -50,23 +52,31 @@ export function DashboardHeader({
   onOpenSyncCode,
   onEditUsername,
   onSignOut,
+  onOpenSidebar,
+  onOpenSearch,
 }: DashboardHeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const effectiveName = displayName || user.displayName || user.email || "Learner";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-[1720px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="flex size-8.5 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <BookMarked className="size-4.5" />
-          </span>
+    <header className="sticky top-0 z-30 border-b border-border bg-card/75 backdrop-blur-md">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="flex min-w-0 items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onOpenSidebar}
+            className="lg:hidden"
+            aria-label="Open dashboard panel"
+          >
+            <Menu className="size-4" />
+          </Button>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-foreground">LeetCode Memory Hub</p>
+            <p className="truncate text-sm font-semibold text-foreground">{effectiveName}</p>
             <button
               type="button"
               onClick={onEditUsername}
-              className="inline-flex max-w-full cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-0.2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              className="inline-flex max-w-full cursor-pointer items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
               aria-label="Change profile or LeetCode username"
             >
               <span className="truncate font-medium text-primary">
@@ -78,6 +88,21 @@ export function DashboardHeader({
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onOpenSearch}
+            className="hidden gap-1.5 text-xs sm:inline-flex"
+            title="Search problems (Ctrl/⌘ K)"
+          >
+            <Search className="size-3.5" />
+            Search
+            <kbd className="ml-1 rounded border border-border bg-muted px-1 text-[10px] text-muted-foreground">⌘K</kbd>
+          </Button>
+          <Button variant="ghost" size="icon" onClick={onOpenSearch} className="sm:hidden" aria-label="Search problems">
+            <Search className="size-4" />
+          </Button>
+
           <button
             type="button"
             onClick={onEditUsername}
@@ -85,52 +110,38 @@ export function DashboardHeader({
             title="Edit Profile & LeetCode connection"
           >
             <Avatar user={user} />
-            <div className="text-right">
-              <p className="max-w-[150px] truncate text-xs font-medium text-foreground">
-                {effectiveName}
-              </p>
-              <p className="text-[10px] text-muted-foreground">{lastSyncedLabel}</p>
-            </div>
+            <p className="text-[10px] text-muted-foreground">{lastSyncedLabel}</p>
           </button>
 
           <Button
             variant="outline"
             size="icon"
             onClick={toggleTheme}
-            className="size-8.5 rounded-xl border-border bg-card text-foreground"
+            className="size-8.5 rounded-xl"
             title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             aria-label="Toggle light and dark theme"
           >
             {theme === "dark" ? <Sun className="size-4 text-amber-300" /> : <Moon className="size-4 text-zinc-600" />}
           </Button>
 
-          {/* Secondary Action: Add problem */}
-          <Button variant="outline" size="sm" onClick={onAddProblem} className="hidden sm:inline-flex gap-1.5 text-xs">
-            <Plus className="size-3.5" /> <span>Add problem</span>
+          <Button variant="outline" size="sm" onClick={onAddProblem} className="hidden gap-1.5 text-xs sm:inline-flex">
+            <Plus className="size-3.5" /> <span>Add</span>
           </Button>
 
-          {/* Sync Code Extension / Dialog Action */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onOpenSyncCode}
-            className="text-xs gap-1.5 border-border bg-card hover:bg-muted"
-            title="Sync accepted solutions & code via extension or clipboard"
-          >
+          <Button variant="outline" size="sm" onClick={onOpenSyncCode} className="gap-1.5 text-xs" title="Sync accepted solutions">
             <Zap className="size-3.5 text-amber-500" />
             <span className="hidden sm:inline">Sync Code</span>
           </Button>
 
-          {/* Primary Quick Sync from LeetCode Profile */}
           <Button
             size="sm"
             onClick={onSync}
             disabled={syncing || !leetcodeUsername}
-            className="text-xs gap-1.5 bg-primary text-primary-foreground hover:opacity-90"
-            title="Fetch recent LeetCode progress directly from public profile"
+            className="gap-1.5 text-xs"
+            title="Fetch recent LeetCode progress"
           >
             <RefreshCw className={cn("size-3.5", syncing && "animate-spin")} />
-            <span className="hidden sm:inline">{syncing ? "Syncing…" : "Sync LeetCode"}</span>
+            <span className="hidden sm:inline">{syncing ? "Syncing…" : "Sync"}</span>
           </Button>
 
           <Button variant="ghost" size="icon" onClick={onSignOut} aria-label="Sign out" title="Sign out" className="size-8.5 text-muted-foreground hover:text-foreground">

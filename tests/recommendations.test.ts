@@ -17,6 +17,7 @@ function problem(overrides: Partial<SolvedProblem> & Pick<SolvedProblem, "titleS
     lastRevisedAt: null,
     solvedAt: null,
     source: "sync",
+    pinned: false,
     ...overrides,
   };
 }

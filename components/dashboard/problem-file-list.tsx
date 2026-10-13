@@ -11,6 +11,7 @@ import {
   FileCode2,
   FileText,
   Maximize2,
+  Pin,
   RotateCw,
   Sparkles,
 } from "lucide-react";
@@ -28,6 +29,7 @@ interface ProblemFileListProps {
   problems: SolvedProblem[];
   onStatusChange: (titleSlug: string, status: MemoryStatus) => Promise<void>;
   onOpenWorkspace?: (problem: SolvedProblem) => void;
+  onTogglePin?: (titleSlug: string, pinned: boolean) => Promise<void>;
 }
 
 const DIFFICULTY_CONFIG: Record<
@@ -64,6 +66,7 @@ export function ProblemFileList({
   problems,
   onStatusChange,
   onOpenWorkspace,
+  onTogglePin,
 }: ProblemFileListProps) {
   const [updatingSlug, setUpdatingSlug] = useState<string | null>(null);
   const [statusMenuOpen, setStatusMenuOpen] = useState<string | null>(null);
@@ -138,6 +141,7 @@ export function ProblemFileList({
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
+                    {problem.pinned && <Pin className="size-3 shrink-0 fill-current text-primary" />}
                     <span className="truncate font-medium text-foreground group-hover:text-primary transition-colors">
                       {problem.title}
                     </span>
@@ -220,7 +224,21 @@ export function ProblemFileList({
               </div>
 
               {/* Action: AI View button (visible on row hover or inside workspace) */}
-              <div className="hidden sm:col-span-2 sm:flex items-center justify-end">
+              <div className="hidden sm:col-span-2 sm:flex items-center justify-end gap-1">
+                {onTogglePin && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void onTogglePin(problem.titleSlug, !problem.pinned);
+                    }}
+                    className="size-7"
+                    title={problem.pinned ? "Unpin" : "Pin"}
+                  >
+                    <Pin className={cn("size-3.5", problem.pinned && "fill-current text-primary")} />
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
